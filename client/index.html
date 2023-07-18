@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content=" initial-scale=1.0">
+        <title>开字母</title>
+        <link rel="stylesheet" href="index.css">
+    </head>
+
+    <body>
+        <h1>开字母</h1>
+        <div id="preparation">
+            <label>输入用户名<input type="text" max="10" id="username" value="leomini"></label>
+            <button
+                onclick="this.disabled = 'disabled';document.getElementById('error').innerText = '';setup(this);">加入</button>
+            <span id="error"></span>
+        </div>
+        <div id="room-list">
+            <div>我的信息
+                <span id="username-display"></span>
+                ID: <span id="id-display"></span>
+                <span id="delay">-</span>ms
+                <ul id="user-list">获取玩家中
+                </ul>
+                <div>
+                    <ol>
+                        <li></li>
+                    </ol>
+                </div>
+            </div>
+            <div id="console"></div>
+        </div>
+    </body>
+    <script src="index.js"></script>
+
+</html>

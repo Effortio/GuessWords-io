@@ -1,0 +1,14 @@
+#room-list {
+    display: none;
+}
+
+
+#console {
+    font-size: small;
+    font-family: monospace;
+    /* display: none; */
+}
+
+#error {
+    color: red;
+}
