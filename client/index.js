@@ -1,7 +1,6 @@
 // Initialize WebSocket connection and event handlers
-var ws;
+var ws, id;
 function setup(obj) {
-    var id;
     log("开始连接")
     ws = new WebSocket("ws://localhost:1145");
     // Listen for the connection open event then call the sendMessage function
@@ -17,23 +16,19 @@ function setup(obj) {
     // Listen for connection errors
     ws.onerror = function (e) {
         log("Error" + e);
-
         ws.close();
     }
     // Listen for new messages arriving at the client
     ws.onmessage = function (e) {
-        if (e.data == "testconn") {
-            sendMessage("WAITING delay id=" + id + ",delay=" + caldelay());
-        } else if (e.data.search(/^id:/) != -1) {
+        if (e.data.search(/^WAITING id:/) != -1) {
             id = e.data.split(":")[1];
             log("ID:" + id);
             enter(id);
         } else if (e.data.search(/^GAMING data:/) != -1) {
-            log(e.data);
             listplayers(e.data.replace("GAMING data:", ""));
-        } else {
-            log(e.data);
+            sendMessage("GAMING delay id=" + id + ",delay=" + caldelay());
         }
+        log(e.data);
     }
     document.body.onunload = () => {
         log("断开连接");
@@ -68,11 +63,20 @@ function enter(id) {
 }
 
 function listplayers(ouser) {
-    var user = JSON.parse(ouser);
+    let user = JSON.parse(ouser);
     document.getElementById("user-list").innerHTML = "";
     for (const userown in user["user"]) {
         li = document.createElement("li");
-        li.innerText = "#" + (parseInt(userown) + 1) + "    " + user["user"][userown]["name"] + "  " + user["user"][userown]["delay"] + "ms";
+        log(userown + " " + id + " " + JSON.stringify(user["user"]));
+        li.innerText = "#" + (parseInt(userown) + 1) + "    " + user["user"][userown]["name"] + " ";
+        if (user["user"][userown]["op"]) {
+            li.innerText += "(房主) "
+        }
+        if (userown != id) {
+            li.innerText += user["user"][userown]["delay"] + "ms";
+        } else {
+            li.innerText += "(我)";
+        }
         document.getElementById("user-list").appendChild(li);
     }
 }
