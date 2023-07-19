@@ -1,64 +1,98 @@
-#game {
-    display: none;
+body {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
 }
 
-#guess-order {
-    width: 40px;
+h1 {
+  margin-top: 30px;
 }
 
-#guess-border {
-    display: none;
-}
-
-#console {
-    font-size: small;
-    /* display: none; */
+#preparation,
+#game,
+#finish {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
 }
 
 #error {
-    color: red;
+  color: red;
 }
 
-table td {
-    border-bottom: 2px solid;
-}
+/* Improve user list and messages display */
 
-#finish {
-    display: none;
-}
-
-#message-display {
-    list-style-type: none;
-    border: 0.5px solid;
-    border-radius: 10px;
-    height: 128px;
-    overflow: hidden;
-}
-
-ul,
-li {
-    margin: 0;
-    padding: 0;
-}
-
-ol {
-    width: 10%;
-    margin: auto;
+#user-list {
+  list-style-type: none;
+  padding: 0;
 }
 
 #user-list li {
-    list-style-type: none;
-    display: inline-block;
-    background-color: blanchedalmond;
-    border-radius: 5px;
-    margin: 7px;
-    padding: 7px;
+  display: inline-block;
+  background-color: blanchedalmond;
+  border-radius: 5px;
+  margin: 7px;
+  padding: 7px;
 }
 
-body {
-    text-align: center;
+#message-display {
+  list-style-type: none;
+  border: 0.5px solid;
+  border-radius: 10px;
+  max-height: 128px;
+  overflow-y: auto;
+  padding: 5px;
 }
+
+/* Style buttons */
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:disabled {
+  background-color: #b0b0b0;
+  cursor: not-allowed;
+}
+
+/* Improve table styling */
 
 table {
-    margin: auto;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th {
+  background-color: #f2f2f2;
+  padding: 10px;
+  text-align: left;
+}
+
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Hide certain elements by default */
+
+#game,
+#finish {
+  display: none;
 }
