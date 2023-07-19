@@ -1,14 +1,64 @@
-#room-list {
+#game {
     display: none;
 }
 
+#guess-order {
+    width: 40px;
+}
+
+#guess-border {
+    display: none;
+}
 
 #console {
     font-size: small;
-    font-family: monospace;
     /* display: none; */
 }
 
 #error {
     color: red;
+}
+
+table td {
+    border-bottom: 2px solid;
+}
+
+#finish {
+    display: none;
+}
+
+#message-display {
+    list-style-type: none;
+    border: 0.5px solid;
+    border-radius: 10px;
+    height: 128px;
+    overflow: hidden;
+}
+
+ul,
+li {
+    margin: 0;
+    padding: 0;
+}
+
+ol {
+    width: 10%;
+    margin: auto;
+}
+
+#user-list li {
+    list-style-type: none;
+    display: inline-block;
+    background-color: blanchedalmond;
+    border-radius: 5px;
+    margin: 7px;
+    padding: 7px;
+}
+
+body {
+    text-align: center;
+}
+
+table {
+    margin: auto;
 }
