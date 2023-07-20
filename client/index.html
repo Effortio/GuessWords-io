@@ -42,9 +42,10 @@
                         <div class="game-message">
                             <div>第<span id="turn">-</span>局</div>
                             <div>第<span id="round">-</span>轮</div>
-                            <div>剩余未知单词<span id="left-guess">-</span>个</div>
+                            <div>剩余未知词语<span id="left-guess">-</span>个</div>
                             <div>已开字母<span id="opened-letter"></span></div>
                             <button onclick="ws.send('GAME require-data')">刷新</button>
+                            <button onclick="ws.send('GAME skip')" id="skip">跳过本局</button>
                         </div>
                         <div class="word-list-border">
                             <ul id="word-list">

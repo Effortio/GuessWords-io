@@ -1,0 +1,13 @@
+{
+    "word-length": 5,
+    "word-type": "default",
+    "word": {
+        "default": [
+            "aaaaa",
+            "bbbbb",
+            "ccccc",
+            "ddddd",
+            "eeeee"
+        ]
+    }
+}

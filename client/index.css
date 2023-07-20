@@ -150,6 +150,17 @@ ul {
     font-weight: 400;
 }
 
+#preparation {
+    background-color: aquamarine;
+    border-radius: 15px;
+    border: 1px solid;
+}
+
 #preparation>div {
     margin: 10px;
+}
+
+#game-pausing>div:first-child {
+    font-size: x-large;
+    font-weight: bold;
 }

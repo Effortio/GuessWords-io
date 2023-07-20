@@ -2,10 +2,11 @@ const ws = require("nodejs-websocket");
 const fs = require('fs');
 const os = require("os");
 
-var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
-var wordStorage = [], wordAnswer = [];//单词库
+var filepath = "./server/data.json";//配置文件
 
-loadDoc();//加载单词库
+var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
+var wordAnswer = [];//单词库
+
 reset();//游戏重置
 
 var _server = ws.createServer(conn => {
@@ -44,6 +45,9 @@ var _server = ws.createServer(conn => {
                 } else if (str == "GAME require-data") {
                     //向客户端发送游戏数据
                     conn.send("GAME data:" + JSON.stringify(storage));
+                } else if (str == "GAME skip") {
+                    //跳过本局
+                    endgame();
                 }
                 else {
                     if (str.search(/^GAME open-letter/) != -1) {
@@ -81,7 +85,7 @@ var _server = ws.createServer(conn => {
                         }
                     } else if (str.search(/^GAME guess/) != -1) {
                         //接收客户端猜测单词
-                        if (storage["data"]["word"][str.split("order=")[1].split(",guess-word=")[0] - 1].indexOf("*") != -1) {
+                        if (storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1].indexOf("*") != -1) {
                             if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1].trim() == str.split(",guess-word=")[1].trim()) {
                                 storage["message"].push({
                                     "type": "game",
@@ -117,10 +121,7 @@ var _server = ws.createServer(conn => {
                         }
                     }
                     if (storage["data"]["leftguess"] == 0) {
-                        storage["end"] = true;
-                        setTimeout(() => {
-                            reset();
-                        }, 3000);
+                        endgame();
                     }
                 }
             }
@@ -148,13 +149,6 @@ var _server = ws.createServer(conn => {
     });
 });
 
-
-function loadDoc() {
-    //调用readFile方法读取磁盘文件：异步操作
-    let data = fs.readFileSync('./server/wordlist.txt', { "encoding": "utf-8", "flag": "r" });
-    wordStorage = data.split("\r\n");//去除换行
-}
-
 function remove(identify) {//移除用户
     if (identify in storage["user"]) {
         console.warn("disconnected id ", identify, ",name ", storage["user"][identify]["name"]);
@@ -180,8 +174,8 @@ function getRandomArrayElements(arr, count) {
     return shuffled.slice(min);
 }
 
-function shuffleWord() {//获得随机单词库
-    wordAnswer = getRandomArrayElements(wordStorage, 5);
+function shuffleWord(data, length) {//获得随机单词库
+    wordAnswer = getRandomArrayElements(data, length);
     for (const each of wordAnswer) {
         var newword = "";
         for (let i of each) {
@@ -196,6 +190,7 @@ function shuffleWord() {//获得随机单词库
 }
 
 function reset() {//游戏重置
+    let data = JSON.parse(fs.readFileSync(filepath, { "encoding": "utf-8", "flag": "r" }));//读取配置
     storage["data"] = {
         "words": [],
         "openedletter": [],
@@ -203,7 +198,7 @@ function reset() {//游戏重置
         "leftguess": 0,
         "turn": storage["data"]["turn"] + 1
     };
-    shuffleWord();
+    shuffleWord(data["word"][data["word-type"]], parseInt(data["word-length"]));
     storage["data"]["leftguess"] = wordAnswer.length;
     storage["message"] = [];
     storage["end"] = false;
@@ -211,6 +206,13 @@ function reset() {//游戏重置
         storage["user"][i]["score"] = 0;
     }
     console.log(wordAnswer);
+}
+
+function endgame() {
+    storage["end"] = true;
+    setTimeout(() => {
+        reset();
+    }, 3000);
 }
 
 function getip() {

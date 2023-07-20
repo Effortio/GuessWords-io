@@ -47,18 +47,6 @@ function setup(obj) {
     }
 }
 
-function display(data) {
-    displayUser(data);
-    displayMessage(data);
-    if (data["end"]) {
-        displayEndGameInfo(data);
-    } else {
-        displayGameInfo(data);
-        displayWord(data);
-    }
-
-}
-
 function kick(obj) {
     ws.send("GAME kick id=" + obj.title);
 }
@@ -90,6 +78,17 @@ function verify(obj) {
         document.getElementById("send").disabled = "disabled";
     } else {
         document.getElementById("send").disabled = "";
+    }
+}
+
+function display(data) {
+    displayUser(data);
+    displayMessage(data);
+    if (data["end"]) {
+        displayEndGameInfo(data);
+    } else {
+        displayGameInfo(data);
+        displayWord(data);
     }
 }
 
@@ -138,22 +137,23 @@ function displayUser(data) {
                 tempstr += "(房主)";
             }
             if (userown != id) {
-                tempstr += " " + data["user"][userown]["score"] + "分 <small>" + data["user"][userown]["delay"] + "</small>";
+                tempstr += " " + data["user"][userown]["score"] + "分 <small>" + data["user"][userown]["delay"] + "ms</small>";
                 if (data["user"][id]["operator"]) {
                     tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
                 }
             } else {
                 tempstr += " <b>(我)</b>";
             }
-
             tempstr += "</li>";
         }
     }
     operator.innerHTML = tempstr;
     if (data["user"][id]["operator"]) {
         document.getElementById("operator").innerText = "房主";
+        document.getElementById("skip").style.display = "unset";
     } else {
         document.getElementById("operator").innerText = "玩家";
+        document.getElementById("skip").style.display = "none";
     }
 }
 
@@ -182,10 +182,16 @@ function displayEndGameInfo(data) {
     document.getElementById("while-gaming").style.display = "none";
     document.getElementById("game-pausing").style.display = "unset";
     document.getElementById("has-turn").innerText = data["data"]["turn"];
-    document.getElementById("max-score").innerText = Math.max(Object.keys(data["user"]));
-    if (data["user"][id]["score"] == Math.max(Object.keys(data["user"]))) {
+    let maxscore = 0;
+    for (let i in data["user"]) {
+        if (data["user"][i]["score"] > maxscore) {
+            maxscore = data["user"][i]["score"]
+        }
+    }
+    document.getElementById("max-score").innerText = maxscore;
+    if (data["user"][id]["score"] == maxscore) {
         document.getElementById("is-max-score").innerText = "你是最高分！";
     } else {
-        document.getElementById("is-max-score").innerText = "你离最高分还差" + (Math.max(Object.keys(data["user"])) - data["user"][id]["score"]);
+        document.getElementById("is-max-score").innerText = "你离最高分还差" + maxscore - data["user"][id]["score"];
     }
 }
