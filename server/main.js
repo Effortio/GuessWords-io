@@ -1,14 +1,13 @@
 const ws = require("nodejs-websocket");
-var identify = 1;
-var storage = {
-    "user": {}, "data": {
-        "words": [],
-        "openedletter": [],
-        "round": 1,
-        "leftguess": 0
-    }, "message": [], "end": false
-}
-var wordAnswer = []
+const fs = require('fs');
+const os = require("os");
+
+var identify = 1, storage = {};//游戏数据存储
+var wordStorage = [], wordAnswer = [];//单词库
+
+loadDoc();//加载单词库
+reset();//游戏重置
+
 var _server = ws.createServer(conn => {
     let id;
     // 接收客户端返回的数据
@@ -29,6 +28,7 @@ var _server = ws.createServer(conn => {
         } else {
             if (str.search(/^GAME/) != -1) {
                 if (str.search(/^GAME delay id=/) != -1) {
+                    //接收用户延时
                     if (id in storage["user"]) {
                         storage["user"][id]["delay"] = str.split("delay=")[1];//更改延时
                     }
@@ -41,10 +41,12 @@ var _server = ws.createServer(conn => {
                         "name": storage["user"][str.split("id=")[1]]["name"]
                     });
                 } else if (str == "GAME require-data") {
+                    //向客户端发送游戏数据
                     conn.send("GAME data:" + JSON.stringify(storage));
                     console.log(JSON.stringify(storage));
                 }
                 else if (str.search(/^GAME open-letter/) != -1) {
+                    //接收客户端开字母
                     let temp = storage["data"]["words"];
                     storage["data"]["words"] = [];
                     for (var i = 0; i < wordAnswer.length; i++) {
@@ -74,6 +76,7 @@ var _server = ws.createServer(conn => {
                         "name": storage["user"][str.split("id=")[1].split(",")[0]]["name"]
                     });
                 } else if (str.search(/^GAME guess/) != -1) {
+                    //接收客户端猜测单词
                     if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1] == str.split(",guess-word=")[1]) {
                         storage["message"].push({
                             "type": "game",
@@ -98,13 +101,16 @@ var _server = ws.createServer(conn => {
                 }
                 //计算剩余待猜单词数量
                 storage["data"]["leftguess"] = storage["data"]["words"].length;
-                for (var k = 0; k < storage["data"]["words"].length; k++) {
+                for (let k = 0; k < storage["data"]["words"].length; k++) {
                     if (storage["data"]["words"][k].search(/\*/) == -1) {
                         storage["data"]["leftguess"]--;
                     }
                 }
                 if (storage["data"]["leftguess"] == 0) {
                     storage["end"] = true;
+                    setTimeout(() => {
+                        reset();
+                    }, 4000)
                 }
             }
         }
@@ -130,33 +136,19 @@ var _server = ws.createServer(conn => {
 
 
 function loadDoc() {
-    // 引入Node.js文件系统模块：
-    // fs是Node.js自带的模块，使用Node.js中的关键字require将模块引入，使用const定义模块常量
-    const fs = require('fs')
     //调用readFile方法读取磁盘文件：异步操作
-    fs.readFile('./server/wordlist.txt', function (err, data) {
-        //当文件读取失败时，可以获取到err的值，输出错误信息
-        if (err) { throw err }
-        //当文件读取成功时，可以获取到data的值，输出响应的内容
-        // let temparray = ;
-        wordAnswer = getRandomArrayElements(data.toString().split("\r\n"), 5)
-        for (const each of wordAnswer) {
-            var newword = "";
-            for (let i of each) {
-                if (i.search(/[A-Za-z0-9]/) != -1) {
-                    newword += "*"
-                } else {
-                    newword += i;
-                }
-            }
-            storage["data"]["words"].push(newword);
-        }
-    })
+    let data = fs.readFileSync('./server/wordlist.txt', { "encoding": "utf-8", "flag": "r" });
+    //当文件读取成功时，可以获取到data的值，输出响应的内容
+    if (data.split("\r")[0].indexOf("\n") != -1) {
+        wordStorage = data.split("\r\n");//windows
+    } else {
+        wordStorage = data.split("\r");//unix
+    }
 }
 
-function remove(identify) {
+function remove(identify) {//移除用户
     if (identify in storage["user"]) {
-        console.warn(identify, storage["user"]);
+        console.warn("disconnected id ", identify, ",name ", storage["user"][identify]["name"]);
         if (storage["user"][identify]["operator"] && Object.keys(storage["user"]).length > 1) {//房主继承
             let index = identify + 1;
             while (!(index in storage["user"])) {
@@ -169,20 +161,58 @@ function remove(identify) {
 }
 
 function getRandomArrayElements(arr, count) {
-    var shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;  //只是声明变量的方式, 也可以分开写
+    let shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;  //只是声明变量的方式, 也可以分开写
     while (i-- > min) {
-        //console.log(i);
         index = Math.floor((i + 1) * Math.random()); //这里的+1 是因为上面i--的操作  所以要加回来
         temp = shuffled[index];  //即值交换
         shuffled[index] = shuffled[i];
         shuffled[i] = temp;
-        //console.log(shuffled);
     }
     return shuffled.slice(min);
 }
 
+function shuffleWord() {//获得随机单词库
+    wordAnswer = getRandomArrayElements(wordStorage, 5);
+    for (const each of wordAnswer) {
+        var newword = "";
+        for (let i of each) {
+            if (i.search(/[A-Za-z0-9]/) != -1) {
+                newword += "*"
+            } else {
+                newword += i;
+            }
+        }
+        storage["data"]["words"].push(newword);
+    }
+}
+
+function reset() {//游戏重置
+    storage["data"] = {
+        "words": [],
+        "openedletter": [],
+        "round": 1,
+        "leftguess": 0
+    };
+    storage["message"] = [];
+    storage["end"] = false;
+    wordAnswer = [];
+    shuffleWord();
+}
+
+function getip() {
+    const interfaces = os.networkInterfaces();
+    for (let devName in interfaces) {
+        const iface = interfaces[devName];
+        for (let i = 0; i < iface.length; i++) {
+            const alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal && alias.netmask === '255.255.255.0') {
+                return alias.address;
+            }
+        }
+    }
+}
+
 const port = 1145;
-loadDoc();
 _server.listen(port, function () {
-    console.log("监听ws://localhost:" + port);
+    console.log("监听ws://" + getip() + ":" + port);
 })

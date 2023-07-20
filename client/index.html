@@ -21,52 +21,43 @@
                 <span id="username-display"></span>
                 ID: <span id="id-display"></span>
                 <span id="delay">-</span>ms
+            </div>
+            <div class="left">
                 <ul id="user-list">获取玩家中
                 </ul>
-                <div>第<span id="round">-</span>轮，剩余未知单词<span id="left-guess">-</span>个，已开字母
+            </div>
+            <div class="middle">
+                <div class="game-message">第<span id="round">-</span>轮，剩余未知单词<span id="left-guess">-</span>个，已开字母
                     <span id="opened-letter"></span>
                     <button onclick="ws.send('GAME require-data')">刷新</button>
                 </div>
-                <ol id="word-list">
-                    <li></li>
-                </ol>
-                <div>
+                <div class="word-list-border">
+                    <ol id="word-list">
+                    </ol>
+                </div>
+            </div>
+            <div class="right">
+                <div class="message-display-border">
+                    <ul id="message-display"></ul>
+                </div>
+                <div class="game-run-border">
                     <select id="method" onchange="changeMethod()">
                         <option value="open-letter">开字母</option>
                         <option value="guess">猜测</option>
                     </select>
+                    <div id="open-letter-border">
+                        <label>开字母<input id="open-letter" placeholder="开什么字母？" maxlength="1"
+                                onkeyup="verify(this)" /></label>
+                    </div>
+                    <div id="guess-border">
+                        <label>猜第
+                            <input id="guess-order" placeholder="第几个？" type="number" min="1" max="1" value="1" />个是
+                        </label><input id="guess-word" placeholder="猜的是什么？" onkeyup="verify(this)" />
+                    </div>
+                    <div><button onclick="send(this)" id="send" disabled="disabled">发送</button>
+                    </div>
                 </div>
-                <div id="open-letter-border">
-                    <label>开字母<input id="open-letter" placeholder="开什么字母？" maxlength="1"
-                            pattern="/[0-9a-z]/i" /></label>
-                </div>
-                <div id="guess-border">
-                    <label>猜第
-                        <input id="guess-order" placeholder="第几个？" type="number" min="1" max="1" value="1" />个是
-                    </label><input id="guess-word" placeholder="猜的是什么？" />
-                </div>
-                <div><button onclick="send(this)">发送</button>
-                </div>
-                <ul id="message-display"></ul>
-
             </div>
-        </div>
-        <div id="finish">
-            <table>
-                <th colspan="2">游戏结束</th>
-                <tr>
-                    <td>游戏人数</td>
-                    <td id="players-count">0</td>
-                </tr>
-                <tr>
-                    <td>游戏局数</td>
-                    <td id="round-count">0</td>
-                </tr>
-                <tr>
-                    <td>单词个数</td>
-                    <td id="words-count">0</td>
-                </tr>
-            </table>
         </div>
     </body>
     <script src="index.js"></script>
