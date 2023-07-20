@@ -81,31 +81,33 @@ var _server = ws.createServer(conn => {
                         }
                     } else if (str.search(/^GAME guess/) != -1) {
                         //接收客户端猜测单词
-                        if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1].trim() == str.split(",guess-word=")[1].trim()) {
-                            storage["message"].push({
-                                "type": "game",
-                                "content": "guess",
-                                "right": true,
-                                "id": str.split("id=")[1].split(",order=")[0],
-                                "order": str.split("order=")[1].split(",guess-word=")[0],
-                                "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
-                            });
-                            storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
-                            storage["user"][str.split("id=")[1].split(",order=")[0]]["score"] += 50
-                        } else {
-                            storage["message"].push({
-                                "type": "game",
-                                "content": "guess",
-                                "right": false,
-                                "id": str.split("id=")[1].split(",order=")[0],
-                                "order": str.split("order=")[1].split(",guess-word=")[0],
-                                "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
-                            });
-                            if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 5) {
-                                storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 5;
+                        if (storage["data"]["word"][str.split("order=")[1].split(",guess-word=")[0] - 1].indexOf("*") != -1) {
+                            if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1].trim() == str.split(",guess-word=")[1].trim()) {
+                                storage["message"].push({
+                                    "type": "game",
+                                    "content": "guess",
+                                    "right": true,
+                                    "id": str.split("id=")[1].split(",order=")[0],
+                                    "order": str.split("order=")[1].split(",guess-word=")[0],
+                                    "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
+                                });
+                                storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
+                                storage["user"][str.split("id=")[1].split(",order=")[0]]["score"] += 50
+                            } else {
+                                storage["message"].push({
+                                    "type": "game",
+                                    "content": "guess",
+                                    "right": false,
+                                    "id": str.split("id=")[1].split(",order=")[0],
+                                    "order": str.split("order=")[1].split(",guess-word=")[0],
+                                    "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
+                                });
+                                if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 5) {
+                                    storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 5;
+                                }
                             }
+                            storage["data"]["round"]++;
                         }
-                        storage["data"]["round"]++;
                     }
                     //计算剩余待猜单词数量
                     storage["data"]["leftguess"] = storage["data"]["words"].length;

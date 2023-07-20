@@ -117,7 +117,7 @@ function displayMessage(data) {
         }
         tempstr += "</li>";
         list.innerHTML += tempstr;
-        list.scrollIntoView({ behavior: "smooth", block: "end" })
+        list.scrollIntoView({ behavior: "instant", block: "end" })
     }
 }
 
@@ -138,7 +138,7 @@ function displayUser(data) {
                 tempstr += "(房主)";
             }
             if (userown != id) {
-                tempstr += data["user"][userown]["delay"] + "ms <small>" + data["user"][userown]["score"] + "分</small>";
+                tempstr += " " + data["user"][userown]["score"] + "分 <small>" + data["user"][userown]["delay"] + "</small>";
                 if (data["user"][id]["operator"]) {
                     tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
                 }
@@ -182,7 +182,7 @@ function displayEndGameInfo(data) {
     document.getElementById("while-gaming").style.display = "none";
     document.getElementById("game-pausing").style.display = "unset";
     document.getElementById("has-turn").innerText = data["data"]["turn"];
-    document.getElementById("max-score").innerText = Math.max(data["user"].keys());
+    document.getElementById("max-score").innerText = Math.max(Object.keys(data["user"]));
     if (data["user"][id]["score"] == Math.max(Object.keys(data["user"]))) {
         document.getElementById("is-max-score").innerText = "你是最高分！";
     } else {
