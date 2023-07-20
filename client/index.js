@@ -18,9 +18,11 @@ function setup(obj) {
     }
     // Listen for the close connection event
     ws.onclose = function (e) {
+        console.log("连接关闭");
         obj.disabled = "";
-        document.getElementById("game").innerText = "失去服务器连接";
-        document.getElementById("error").innerText = "连接失败，请重试";
+        document.getElementById("preparation").style.display = "none";
+        document.getElementById("game").style.display = "none";
+        document.getElementById("disconnect").style.display = "unset";
     }
     // Listen for connection errors
     ws.onerror = function (e) {
@@ -31,7 +33,10 @@ function setup(obj) {
     ws.onmessage = function (e) {
         if (e.data.search(/^WAIT id:/) != -1) {
             id = e.data.split(":")[1];
-            enter(id);
+            document.getElementById("preparation").style.display = "none";
+            document.getElementById("game").style.display = "unset";
+            document.getElementById("id-display").innerText = id;
+            document.getElementById("username-display").innerText = document.getElementById("username").value;
         } else if (e.data.search(/^GAME data:/) != -1) {
             display(JSON.parse(e.data.replace("GAME data:", "")));
         }
@@ -42,20 +47,16 @@ function setup(obj) {
     }
 }
 
-function enter(id) {
-    document.getElementById("preparation").style.display = "none";
-    document.getElementById("game").style.display = "unset";
-    document.getElementById("id-display").innerText = id;
-    document.getElementById("username-display").innerText = document.getElementById("username").value;
-}
 function display(data) {
-    if (data["end"]) {
-        //游戏结束
-    }
     displayUser(data);
     displayMessage(data);
-    displayGameInfo(data);
-    displayWord(data);
+    if (data["end"]) {
+        displayEndGameInfo(data);
+    } else {
+        displayGameInfo(data);
+        displayWord(data);
+    }
+
 }
 
 function kick(obj) {
@@ -82,9 +83,6 @@ function send(obj) {
         document.getElementById("guess-word").value = "";
     }
     obj.disabled = "disabled";
-    setTimeout(() => {
-        obj.disabled = "";
-    }, 1000);
 }
 
 function verify(obj) {
@@ -103,14 +101,7 @@ function displayMessage(data) {
         if (mess["type"] == "system") {
             tempstr += "【系统】";
             if (mess["content"] == "kicked") {
-                if (mess["id"] == id) {
-                    document.getElementById("game").innerHTML = "<b>非常抱歉，您已被房主踢出</b>";
-                    clearInterval(refresh);
-                    return;
-                }
-                else {
-                    tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "被踢出游戏";
-                }
+                tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "被踢出游戏";
             } else if (mess["content"] == "closed") {
                 tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "失去了连接";
             } else if (mess["content"] == "joined") {
@@ -131,14 +122,22 @@ function displayMessage(data) {
 }
 
 function displayUser(data) {
+    if (!(id.toString() in data["user"])) {
+        //被踢出
+        clearInterval(refresh);
+        document.getElementById("game").style.display = "none";
+        document.getElementById("disconnect").style.display = "unset";
+        return;
+    }
     const operator = document.getElementById("user-list");
     tempstr = "";
     for (const userown in data["user"]) {
         if (Object.hasOwnProperty.call(data["user"], userown)) {
             tempstr += "<li>#" + userown + "&Tab;" + data["user"][userown]["name"] + "&Tab;";
             if (data["user"][userown]["operator"]) {
-                tempstr += "(房主) ";
-            } if (userown != id) {
+                tempstr += "(房主)";
+            }
+            if (userown != id) {
                 tempstr += data["user"][userown]["delay"] + "ms";
                 if (data["user"][id]["operator"]) {
                     tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
@@ -150,20 +149,35 @@ function displayUser(data) {
         }
     }
     operator.innerHTML = tempstr;
+    if (data["user"][id]["operator"]) {
+        document.getElementById("operator").innerText = "房主";
+    } else {
+        document.getElementById("operator").innerText = "玩家";
+    }
 }
 
 function displayWord(data) {
-    const wordlist = document.getElementById("word-list");
-    let wordtempstr = "";
-    for (const word of data["data"]["words"]) {
-        wordtempstr += "<li>" + word + "</li>";
+    let tempstr = "";
+    for (let i = 0; i < data["data"]["words"].length; i++) {
+        tempstr += "<li>" + (i + 1) + ". " + data["data"]["words"][i] + "</li>"
     }
-    wordlist.innerHTML = wordtempstr;
+    document.getElementById("word-list").innerHTML = tempstr;
 }
 
 function displayGameInfo(data) {
+    document.getElementById("game-pausing").style.display = "none";
+    document.getElementById("while-gaming").style.display = "unset";
+    document.getElementsByClassName("game-run-border")[0].style.opacity = "1";
     document.getElementById("opened-letter").innerText = data["data"]["openedletter"].length > 0 ? data["data"]["openedletter"].join("、") : "(无)";
     document.getElementById("guess-order").max = data["data"]["words"].length;
     document.getElementById("round").innerText = data["data"]["round"];
+    document.getElementById("turn").innerText = data["data"]["turn"];
     document.getElementById("left-guess").innerText = data["data"]["leftguess"];
+}
+
+function displayEndGameInfo(data) {
+    document.getElementsByClassName("game-run-border")[0].style.opacity = "0";
+    document.getElementById("while-gaming").style.display = "none";
+    document.getElementById("game-pausing").style.display = "unset";
+    document.getElementById("has-turn").innerText = data["data"]["turn"];
 }

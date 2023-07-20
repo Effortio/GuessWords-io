@@ -2,7 +2,7 @@ const ws = require("nodejs-websocket");
 const fs = require('fs');
 const os = require("os");
 
-var identify = 1, storage = {};//游戏数据存储
+var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
 var wordStorage = [], wordAnswer = [];//单词库
 
 loadDoc();//加载单词库
@@ -40,77 +40,80 @@ var _server = ws.createServer(conn => {
                         "id": str.split("id=")[1],
                         "name": storage["user"][str.split("id=")[1]]["name"]
                     });
+                    remove(str.split("id=")[1]);
                 } else if (str == "GAME require-data") {
                     //向客户端发送游戏数据
                     conn.send("GAME data:" + JSON.stringify(storage));
                     console.log(JSON.stringify(storage));
                 }
-                else if (str.search(/^GAME open-letter/) != -1) {
-                    //接收客户端开字母
-                    let temp = storage["data"]["words"];
-                    storage["data"]["words"] = [];
-                    for (var i = 0; i < wordAnswer.length; i++) {
-                        var newword = "";
-                        for (var j = 0; j < wordAnswer[i].length; j++) {
-                            if (temp[i][j] == "*") {
-                                if (str.split("open-letter=")[1].toLowerCase() == wordAnswer[i][j].toLowerCase()) {
-                                    newword += wordAnswer[i][j];
+                else {
+                    if (str.search(/^GAME open-letter/) != -1) {
+                        //接收客户端开字母
+                        let temp = storage["data"]["words"];
+                        storage["data"]["words"] = [];
+                        for (var i = 0; i < wordAnswer.length; i++) {
+                            var newword = "";
+                            for (var j = 0; j < wordAnswer[i].length; j++) {
+                                if (temp[i][j] == "*") {
+                                    if (str.split("open-letter=")[1].toLowerCase() == wordAnswer[i][j].toLowerCase()) {
+                                        newword += wordAnswer[i][j];
+                                    } else {
+                                        newword += "*";
+                                    }
                                 } else {
-                                    newword += "*";
+                                    newword += wordAnswer[i][j];
                                 }
-                            } else {
-                                newword += wordAnswer[i][j];
                             }
+                            storage["data"]["words"].push(newword);
                         }
-                        storage["data"]["words"].push(newword);
-                    }
-                    storage["data"]["round"]++;
-                    if (storage["data"]["openedletter"].indexOf(str.split("open-letter=")[1].toLowerCase()) == -1) {
-                        storage["data"]["openedletter"].push(str.split("open-letter=")[1].toLowerCase())
-                    }
-                    storage["message"].push({
-                        "type": "game",
-                        "content": "opened-letter",
-                        "id": str.split("id=")[1].split(",")[0],
-                        "letter": str.split("open-letter=")[1],
-                        "name": storage["user"][str.split("id=")[1].split(",")[0]]["name"]
-                    });
-                } else if (str.search(/^GAME guess/) != -1) {
-                    //接收客户端猜测单词
-                    if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1] == str.split(",guess-word=")[1]) {
+                        storage["data"]["round"]++;
+                        if (storage["data"]["openedletter"].indexOf(str.split("open-letter=")[1].toLowerCase()) == -1) {
+                            storage["data"]["openedletter"].push(str.split("open-letter=")[1].toLowerCase())
+                        }
                         storage["message"].push({
                             "type": "game",
-                            "content": "guess",
-                            "right": true,
-                            "id": str.split("id=")[1].split(",order=")[0],
-                            "order": str.split("order=")[1].split(",guess-word=")[0],
-                            "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
+                            "content": "opened-letter",
+                            "id": str.split("id=")[1].split(",")[0],
+                            "letter": str.split("open-letter=")[1],
+                            "name": storage["user"][str.split("id=")[1].split(",")[0]]["name"]
                         });
-                        storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
-                    } else {
-                        storage["message"].push({
-                            "type": "game",
-                            "content": "guess",
-                            "right": false,
-                            "id": str.split("id=")[1].split(",order=")[0],
-                            "order": str.split("order=")[1].split(",guess-word=")[0],
-                            "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
-                        });
+                    } else if (str.search(/^GAME guess/) != -1) {
+                        //接收客户端猜测单词
+                        if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1] == str.split(",guess-word=")[1]) {
+                            storage["message"].push({
+                                "type": "game",
+                                "content": "guess",
+                                "right": true,
+                                "id": str.split("id=")[1].split(",order=")[0],
+                                "order": str.split("order=")[1].split(",guess-word=")[0],
+                                "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
+                            });
+                            storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
+                        } else {
+                            storage["message"].push({
+                                "type": "game",
+                                "content": "guess",
+                                "right": false,
+                                "id": str.split("id=")[1].split(",order=")[0],
+                                "order": str.split("order=")[1].split(",guess-word=")[0],
+                                "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
+                            });
+                        }
+                        storage["data"]["round"]++;
                     }
-                    storage["data"]["round"]++;
-                }
-                //计算剩余待猜单词数量
-                storage["data"]["leftguess"] = storage["data"]["words"].length;
-                for (let k = 0; k < storage["data"]["words"].length; k++) {
-                    if (storage["data"]["words"][k].search(/\*/) == -1) {
-                        storage["data"]["leftguess"]--;
+                    //计算剩余待猜单词数量
+                    storage["data"]["leftguess"] = storage["data"]["words"].length;
+                    for (let k = 0; k < storage["data"]["words"].length; k++) {
+                        if (storage["data"]["words"][k].search(/\*/) == -1) {
+                            storage["data"]["leftguess"]--;
+                        }
                     }
-                }
-                if (storage["data"]["leftguess"] == 0) {
-                    storage["end"] = true;
-                    setTimeout(() => {
-                        reset();
-                    }, 4000)
+                    if (storage["data"]["leftguess"] == 0) {
+                        storage["end"] = true;
+                        setTimeout(() => {
+                            reset();
+                        }, 3000);
+                    }
                 }
             }
         }
@@ -119,13 +122,16 @@ var _server = ws.createServer(conn => {
     //客户端关闭连接
     conn.on("close", function (e) {
         console.log("断开连接 ID", id);
-        storage["message"].push({
-            "type": "system",
-            "content": "closed",
-            "id": id,
-            "name": storage["user"][id]["name"]
-        });
-        remove(id);
+        if (id in storage["user"]) {
+            storage["message"].push({
+                "type": "system",
+                "content": "closed",
+                "id": id,
+                "name": storage["user"][id]["name"]
+            });
+            remove(id);
+        }
+
     });
 
     conn.on("error", function (err) {
@@ -191,7 +197,8 @@ function reset() {//游戏重置
         "words": [],
         "openedletter": [],
         "round": 1,
-        "leftguess": 0
+        "leftguess": 0,
+        "turn": storage["data"]["turn"] + 1
     };
     storage["message"] = [];
     storage["end"] = false;
