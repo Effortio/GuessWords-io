@@ -35,10 +35,13 @@ ul {
 }
 
 .message-display-border {
-    height: calc(var(--height) - 110px);
+    height: calc(var(--height) - 125px);
     overflow: hidden;
     background-color: white;
     margin: 10px;
+    border-radius: 10px;
+    border: 1px solid;
+    overflow: hidden;
 }
 
 #user-list,
@@ -47,12 +50,17 @@ ul {
     padding: 0;
 }
 
+#message-display>li::before {
+    content: "·";
+}
+
 #username-display {
     font-weight: bold;
     font-size: large;
 }
 
-#operator {
+#operator,
+#score {
     font-weight: bold;
 }
 
@@ -82,6 +90,8 @@ ul {
     vertical-align: top;
     background-color: bisque;
     height: var(--height);
+    border-radius: 10px;
+    border: 1px solid;
 }
 
 .middle {
@@ -90,16 +100,20 @@ ul {
     flex: 5;
     vertical-align: top;
     background-color: bisque;
-    height: var(--height)
+    height: var(--height);
+    border-radius: 10px;
+    border: 1px solid;
 }
 
 .right {
     margin: 1%;
     flex: 3;
-    width: 30%;
+    width: 20%;
     vertical-align: top;
     background-color: bisque;
     height: var(--height);
+    border-radius: 10px;
+    border: 1px solid;
 }
 
 #guess-border {
@@ -110,6 +124,17 @@ ul {
     width: 90%;
 }
 
+.game-run-border {
+    height: 110px;
+}
+
 #disconnect {
     display: none;
+}
+
+#turn,
+#round,
+#left-guess {
+    font-size: large;
+    font-weight: bold;
 }

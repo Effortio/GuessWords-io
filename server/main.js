@@ -17,7 +17,7 @@ var _server = ws.createServer(conn => {
             identify++;//鉴别身份
             //创建用户,op=管理员
             console.warn(Object.keys(storage["user"]).length);
-            storage["user"][id] = { "name": str.split(":")[1], "delay": "-", "operator": Object.keys(storage["user"]).length == 0 ? true : false };
+            storage["user"][id] = { "name": str.split(":")[1], "delay": "-", "operator": Object.keys(storage["user"]).length == 0 ? true : false, "score": 0 };
             storage["message"].push({
                 "type": "system",
                 "content": "joined",
@@ -44,7 +44,6 @@ var _server = ws.createServer(conn => {
                 } else if (str == "GAME require-data") {
                     //向客户端发送游戏数据
                     conn.send("GAME data:" + JSON.stringify(storage));
-                    console.log(JSON.stringify(storage));
                 }
                 else {
                     if (str.search(/^GAME open-letter/) != -1) {
@@ -77,6 +76,9 @@ var _server = ws.createServer(conn => {
                             "letter": str.split("open-letter=")[1],
                             "name": storage["user"][str.split("id=")[1].split(",")[0]]["name"]
                         });
+                        if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 10) {
+                            storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 10;
+                        }
                     } else if (str.search(/^GAME guess/) != -1) {
                         //接收客户端猜测单词
                         if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1] == str.split(",guess-word=")[1]) {
@@ -89,6 +91,7 @@ var _server = ws.createServer(conn => {
                                 "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
                             });
                             storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
+                            storage["user"][str.split("id=")[1].split(",order=")[0]]["score"] += 50
                         } else {
                             storage["message"].push({
                                 "type": "game",
@@ -200,10 +203,14 @@ function reset() {//游戏重置
         "leftguess": 0,
         "turn": storage["data"]["turn"] + 1
     };
+    shuffleWord();
+    storage["data"]["leftguess"] = wordAnswer.length;
     storage["message"] = [];
     storage["end"] = false;
-    wordAnswer = [];
-    shuffleWord();
+    for (let i in storage["user"]) {
+        storage["user"][i]["score"] = 0;
+    }
+    console.log(wordAnswer);
 }
 
 function getip() {

@@ -117,8 +117,8 @@ function displayMessage(data) {
         }
         tempstr += "</li>";
         list.innerHTML += tempstr;
+        list.scrollIntoView({ behavior: "smooth", block: "end" })
     }
-    list.scrollTop = list.scrollHeight;
 }
 
 function displayUser(data) {
@@ -173,6 +173,7 @@ function displayGameInfo(data) {
     document.getElementById("round").innerText = data["data"]["round"];
     document.getElementById("turn").innerText = data["data"]["turn"];
     document.getElementById("left-guess").innerText = data["data"]["leftguess"];
+    document.getElementById("score").innerText = data["user"][id]["score"];
 }
 
 function displayEndGameInfo(data) {
