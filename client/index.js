@@ -138,14 +138,15 @@ function displayUser(data) {
                 tempstr += "(房主)";
             }
             if (userown != id) {
-                tempstr += data["user"][userown]["delay"] + "ms";
+                tempstr += data["user"][userown]["delay"] + "ms <small>" + data["user"][userown]["score"] + "分</small>";
                 if (data["user"][id]["operator"]) {
                     tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
                 }
             } else {
                 tempstr += " <b>(我)</b>";
             }
-            tempstr += "</li>"
+
+            tempstr += "</li>";
         }
     }
     operator.innerHTML = tempstr;
@@ -181,4 +182,10 @@ function displayEndGameInfo(data) {
     document.getElementById("while-gaming").style.display = "none";
     document.getElementById("game-pausing").style.display = "unset";
     document.getElementById("has-turn").innerText = data["data"]["turn"];
+    document.getElementById("max-score").innerText = Math.max(data["user"].keys());
+    if (data["user"][id]["score"] == Math.max(Object.keys(data["user"]))) {
+        document.getElementById("is-max-score").innerText = "你是最高分！";
+    } else {
+        document.getElementById("is-max-score").innerText = "你离最高分还差" + (Math.max(Object.keys(data["user"])) - data["user"][id]["score"]);
+    }
 }

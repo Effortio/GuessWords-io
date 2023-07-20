@@ -50,6 +50,13 @@ ul {
     padding: 0;
 }
 
+#user-list>li {
+    border-radius: 10px;
+    background-color: burlywood;
+    padding: 5px;
+    margin: 5px;
+}
+
 #message-display>li::before {
     content: "·";
 }
@@ -137,4 +144,12 @@ ul {
 #left-guess {
     font-size: large;
     font-weight: bold;
+}
+
+#is-max-score {
+    font-weight: 400;
+}
+
+#preparation>div {
+    margin: 10px;
 }

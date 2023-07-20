@@ -81,7 +81,7 @@ var _server = ws.createServer(conn => {
                         }
                     } else if (str.search(/^GAME guess/) != -1) {
                         //接收客户端猜测单词
-                        if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1] == str.split(",guess-word=")[1]) {
+                        if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1].trim() == str.split(",guess-word=")[1].trim()) {
                             storage["message"].push({
                                 "type": "game",
                                 "content": "guess",
@@ -101,6 +101,9 @@ var _server = ws.createServer(conn => {
                                 "order": str.split("order=")[1].split(",guess-word=")[0],
                                 "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
                             });
+                            if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 5) {
+                                storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 5;
+                            }
                         }
                         storage["data"]["round"]++;
                     }
@@ -147,12 +150,7 @@ var _server = ws.createServer(conn => {
 function loadDoc() {
     //调用readFile方法读取磁盘文件：异步操作
     let data = fs.readFileSync('./server/wordlist.txt', { "encoding": "utf-8", "flag": "r" });
-    //当文件读取成功时，可以获取到data的值，输出响应的内容
-    if (data.split("\r")[0].indexOf("\n") != -1) {
-        wordStorage = data.split("\r\n");//windows
-    } else {
-        wordStorage = data.split("\r");//unix
-    }
+    wordStorage = data.split("\r\n");//去除换行
 }
 
 function remove(identify) {//移除用户
