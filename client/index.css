@@ -160,10 +160,15 @@ ul {
 }
 
 #game-pausing>div:first-child {
-    font-size: x-large;
+    font-size: large;
     font-weight: bold;
 }
 
 #word-list {
     list-style-position: inside;
+}
+
+#has-turn,
+#max-score {
+    font-weight: bold;
 }
