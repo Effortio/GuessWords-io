@@ -163,3 +163,7 @@ ul {
     font-size: x-large;
     font-weight: bold;
 }
+
+#word-list {
+    list-style-position: inside;
+}

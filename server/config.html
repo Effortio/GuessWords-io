@@ -11,7 +11,11 @@
             text-align: center;
         }
 
-
+        ol {
+            margin: 0;
+            padding: 0;
+            list-style-position: inside;
+        }
 
         header {
             font-size: x-large;
@@ -28,10 +32,39 @@
         label {
             margin: 10px;
         }
+
+        button {
+            margin-left: 5px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            transition-duration: .1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .change-btn {
+            color: blue;
+            background-color: aquamarine;
+        }
+
+        .delete-btn {
+            color: red;
+            background-color: pink;
+        }
+
+        .add-btn {
+            color: green;
+            background-color: greenyellow;
+        }
     </style>
 
     <body>
-        <h1>Admin panel</h1>
+        <h1>Admin Panel</h1>
         <section>
             <header>重置计数器 & 重启服务端</header>
             <p>WebUI不支持，请手动运行server目录下的<b>restart.bat</b></p>
@@ -39,7 +72,7 @@
         <section>
             <header>更改游戏设置</header>
             <label>单词展示个数(3~10):
-                <input type="number" min="3" max="10" value="-" id="word-length" />
+                <input type="number" min="3" max="10" id="word-length" />
             </label>
             <label>
                 词库选择：
@@ -77,9 +110,15 @@
                 }
                 let temp = "";
                 for (let i in data["word"]) {
-                    temp += "<details><summary>" + i + "</summary><ol>"
+                    temp += "<details><summary>" + i + "<button class='add-btn' storage='"
+                        + i + "' onclick='addwordinStorage(this)'>添加</button><button class='change-btn' storage='"
+                        + i + "' onclick='changeStorage(this)'>更改</button><button class='delete-btn' storage='"
+                        + i + "' onclick='deleteStorage(this)'>删除</button></summary><ol>";
+                    var index = 0;
                     for (let j of data["word"][i]) {
-                        temp += "<li>" + j + "</li>";
+                        temp += "<li>" + j + "<button class='change-btn' storage='"
+                            + i + "' wordorder='" + index + "' onclick='changeWord(this)'>更改</button><button class='delete-btn' storage='"
+                            + i + "' wordorder='" + index + "' onclick='deleteWord(this)'>删除</button>" + "</li>";
                     }
                     temp += "</ol></details>";
                 }
@@ -124,6 +163,44 @@
             }, 333);
             return true;
         }
+
+        function addwordinStorage(obj) {
+            let word = prompt("请输入新添加的单词");
+            let storageIn = obj.parentNode.parentNode.getElementsByTagName("ol")[0];
+            if (word != "") {
+                data["word"][obj.getAttribute("storage")].push(word);
+                storageIn.innerHTML += "<li>" + word + "<button class='change-btn' storage='"
+                    + obj.getAttribute("storage") + "' wordorder='" + storageIn.children.length + "' onclick='changeWord(this)'>更改</button><button class='delete-btn' storage='"
+                    + obj.getAttribute("storage") + "' wordorder='" + storageIn.children.length + "' onclick='deleteWord(this)'>删除</button>" + "</li>";
+            }
+        }
+
+        function deleteStorage(obj) {
+            if (confirm("确定吗？这将删除词库并删除词库内的全部词语。")) {
+                delete data["word"][obj.getAttribute("storage")];
+                document.getElementById("words").removeChild(obj.parentNode.parentNode);
+            }
+        }
+
+        function changeStorage(obj) {
+            let word = prompt("请输入要更改的名字");
+            if (word != "") {
+                data["word"] = arr(obj.getAttribute("storage"), word, data["word"]);
+                obj.parentNode.innerHTML = obj.parentNode.innerHTML.replace(obj.getAttribute("storage"), word);
+                obj.parentNode.innerHTML.replaceAll(/storage='.*'/, "storage='" + word + "'");
+            }
+        }
+
+        let arr = function (oldVal, newVal, json) {
+            for (var i in json) {
+                for (var j in json[i]) {
+                    if (j == oldVal) {
+                        json[i][newVal] = json[i][j]//修改属性名为newVal
+                        delete json[i][oldVal]//删除oldVal
+                    }
+                }
+            }
+        };
     </script>
 
 </html>

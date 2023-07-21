@@ -176,7 +176,7 @@ function displayUser(data) {
 function displayWord(data) {
     let tempstr = "";
     for (let i = 0; i < data["data"]["words"].length; i++) {
-        tempstr += "<li>" + (i + 1) + ". " + data["data"]["words"][i] + "</li>"
+        tempstr += "<li>" + data["data"]["words"][i] + "</li>"
     }
     document.getElementById("word-list").innerHTML = tempstr;
 }
