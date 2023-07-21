@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="initial-scale=1.0">
+        <title>管理员面板</title>
+    </head>
+    <style>
+        body {
+            text-align: center;
+        }
+
+
+
+        header {
+            font-size: x-large;
+            font-weight: bold;
+        }
+
+        section {
+            margin: 5px;
+            border: solid 1px;
+            border-radius: 10px;
+            background-color: beige;
+        }
+
+        label {
+            margin: 10px;
+        }
+    </style>
+
+    <body>
+        <h1>Admin panel</h1>
+        <section>
+            <header>重置计数器 & 重启服务端</header>
+            <p>WebUI不支持，请手动运行server目录下的<b>restart.bat</b></p>
+        </section>
+        <section>
+            <header>更改游戏设置</header>
+            <label>单词展示个数(3~10):
+                <input type="number" min="3" max="10" value="-" id="word-length" />
+            </label>
+            <label>
+                词库选择：
+                <input id="word-storage-choose" list="word-storage" placeholder="(可自行输入)" value="?">
+                <datalist id="word-storage">
+                </datalist>
+            </label>
+        </section>
+        <section>
+            <header>添加、更改和删除词库</header>
+            <div id="words">
+            </div>
+        </section>
+    </body>
+    <script>
+        var xmlhttp, data;
+        if (window.XMLHttpRequest) {
+            //  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+            xmlhttp = new XMLHttpRequest();
+        }
+        else {
+            // IE6, IE5 浏览器执行代码
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                data = JSON.parse(xmlhttp.responseText);
+                console.log(data);
+                document.getElementById("word-length").value = data["word-length"];
+                document.getElementById("word-storage-choose").value = data["word-type"];
+                for (let word in data["word"]) {
+                    var choose = document.createElement("option");
+                    choose.innerText = choose.value = word;
+                    document.getElementById("word-storage").appendChild(choose);
+                }
+                let temp = "";
+                for (let i in data["word"]) {
+                    temp += "<details><summary>" + i + "</summary><ol>"
+                    for (let j of data["word"][i]) {
+                        temp += "<li>" + j + "</li>";
+                    }
+                    temp += "</ol></details>";
+                }
+                document.getElementById("words").innerHTML = temp;
+            }
+        };
+        xmlhttp.open("GET", "data.json", true);
+        xmlhttp.send();
+
+        function download(strData, strFileName, strMimeType) {
+            let D = document,
+                A = arguments,
+                a = D.createElement("a"),
+                d = A[0],
+                n = A[1],
+                t = A[2] || "text/plain";
+            //build download link:
+            a.href = "data:" + strMimeType + "charset=utf-8," + escape(strData);
+            if (window.MSBlobBuilder) { // IE10
+                var bb = new MSBlobBuilder();
+                bb.append(strData);
+                return navigator.msSaveBlob(bb, strFileName);
+            } /* end if(window.MSBlobBuilder) */
+            if ('download' in a) { //FF20, CH19
+                a.setAttribute("download", n);
+                a.innerHTML = "downloading...";
+                D.body.appendChild(a);
+                setTimeout(function () {
+                    var e = D.createEvent("MouseEvents");
+                    e.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    a.dispatchEvent(e);
+                    D.body.removeChild(a);
+                }, 66);
+                return true;
+            }; /* end if('download' in a) */
+            //do iframe dataURL download: (older W3)
+            var f = D.createElement("iframe");
+            D.body.appendChild(f);
+            f.src = "data:" + (A[2] ? A[2] : "application/octet-stream") + (window.btoa ? ";base64" : "") + "," + (window.btoa ? window.btoa : escape)(strData);
+            setTimeout(function () {
+                D.body.removeChild(f);
+            }, 333);
+            return true;
+        }
+    </script>
+
+</html>

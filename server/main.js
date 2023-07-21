@@ -2,7 +2,7 @@ const ws = require("nodejs-websocket");
 const fs = require('fs');
 const os = require("os");
 
-var filepath = "./server/data.json";//配置文件
+var filepath = "server/data.json";//配置文件
 
 var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
 var wordAnswer = [];//单词库
@@ -196,7 +196,8 @@ function reset() {//游戏重置
         "openedletter": [],
         "round": 1,
         "leftguess": 0,
-        "turn": storage["data"]["turn"] + 1
+        "turn": storage["data"]["turn"] + 1,
+        "wordstorage": data["word-type"]
     };
     shuffleWord(data["word"][data["word-type"]], parseInt(data["word-length"]));
     storage["data"]["leftguess"] = wordAnswer.length;
@@ -205,7 +206,7 @@ function reset() {//游戏重置
     for (let i in storage["user"]) {
         storage["user"][i]["score"] = 0;
     }
-    console.log(wordAnswer);
+    console.log(wordAnswer, storage["data"]["wordstorage"]);
 }
 
 function endgame() {

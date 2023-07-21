@@ -30,7 +30,9 @@
                 <div>#<span id="id-display"></span></div>
                 <div id="operator"></div>
                 <div><span id="score"></span>分</div>
-                <span id="delay">-</span>ms
+                <div>
+                    <span id="delay">-</span>ms
+                </div>
             </div>
             <div class="content">
                 <div class="left">
@@ -44,8 +46,9 @@
                             <div>第<span id="round">-</span>轮</div>
                             <div>剩余未知词语<span id="left-guess">-</span>个</div>
                             <div>已开字母<span id="opened-letter"></span></div>
+                            <div>词库<span id="word-storage"></span></div>
                             <button onclick="ws.send('GAME require-data')">刷新</button>
-                            <button onclick="ws.send('GAME skip')" id="skip">跳过本局</button>
+                            <button onclick="skipGame(this)" id="skip">跳过本局</button>
                         </div>
                         <div class="word-list-border">
                             <ul id="word-list">

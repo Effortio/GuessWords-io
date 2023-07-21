@@ -21,9 +21,11 @@ ul {
 }
 
 #disconnect {
+    background-color: orange;
+    border-radius: 10px;
+    padding: 15px;
     display: none;
 }
-
 
 #game {
     width: 90%;
@@ -99,6 +101,7 @@ ul {
     height: var(--height);
     border-radius: 10px;
     border: 1px solid;
+    overflow: auto;
 }
 
 .middle {
@@ -133,10 +136,6 @@ ul {
 
 .game-run-border {
     height: 110px;
-}
-
-#disconnect {
-    display: none;
 }
 
 #turn,

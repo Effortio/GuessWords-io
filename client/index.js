@@ -8,6 +8,13 @@ function setup(obj) {
         refresh = setInterval(() => {
             if (!isNaN(new Date() - delay - pace)) {
                 document.getElementById("delay").innerText = Math.abs(new Date() - delay - pace);
+                if (Math.abs(new Date() - delay - pace) < 75) {
+                    document.getElementById("delay").parentNode.style.color = "green";
+                } else if (Math.abs(new Date() - delay - pace) < 200) {
+                    document.getElementById("delay").parentNode.style.color = "orange";
+                } else {
+                    document.getElementById("delay").parentNode.style.color = "red";
+                }
                 ws.send("GAME delay id=" + id + ",delay=" + Math.abs(new Date() - delay - pace));
             } else {
                 ws.send("GAME delay id=" + id + ",delay=-");
@@ -22,7 +29,7 @@ function setup(obj) {
         obj.disabled = "";
         document.getElementById("preparation").style.display = "none";
         document.getElementById("game").style.display = "none";
-        document.getElementById("disconnect").style.display = "unset";
+        document.getElementById("disconnect").style.display = "block";
     }
     // Listen for connection errors
     ws.onerror = function (e) {
@@ -125,11 +132,11 @@ function displayUser(data) {
         //被踢出
         clearInterval(refresh);
         document.getElementById("game").style.display = "none";
-        document.getElementById("disconnect").style.display = "unset";
+        document.getElementById("disconnect").style.display = "block";
         return;
     }
     const operator = document.getElementById("user-list");
-    tempstr = "";
+    let tempstr = "";
     for (const userown in data["user"]) {
         if (Object.hasOwnProperty.call(data["user"], userown)) {
             tempstr += "<li>#" + userown + "&Tab;" + data["user"][userown]["name"] + "&Tab;";
@@ -137,7 +144,16 @@ function displayUser(data) {
                 tempstr += "(房主)";
             }
             if (userown != id) {
-                tempstr += " " + data["user"][userown]["score"] + "分 <small>" + data["user"][userown]["delay"] + "ms</small>";
+                tempstr += " " + data["user"][userown]["score"] + "分 <small style='color:";
+                //延时判断
+                if (data["user"][userown]["delay"] < 75) {
+                    tempstr += "green";
+                } else if (data["user"][userown]["delay"] < 200) {
+                    tempstr += "orange";
+                } else {
+                    tempstr += "red";
+                }
+                tempstr += "'>" + data["user"][userown]["delay"] + "ms</small>";
                 if (data["user"][id]["operator"]) {
                     tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
                 }
@@ -175,6 +191,7 @@ function displayGameInfo(data) {
     document.getElementById("turn").innerText = data["data"]["turn"];
     document.getElementById("left-guess").innerText = data["data"]["leftguess"];
     document.getElementById("score").innerText = data["user"][id]["score"];
+    document.getElementById("word-storage").innerText = data["data"]["wordstorage"];
 }
 
 function displayEndGameInfo(data) {
@@ -194,4 +211,15 @@ function displayEndGameInfo(data) {
     } else {
         document.getElementById("is-max-score").innerText = "你离最高分还差" + maxscore - data["user"][id]["score"];
     }
+}
+
+function skipGame(obj) {
+    if (confirm("这将跳过本局，直接进行下一轮游戏。请注意：请仅在紧急的情况下再使用。使用此按钮后，将会有30秒的冷却时间。确定吗？")) {
+        ws.send('GAME skip');
+        obj.disabled = "disabled";
+        setTimeout(() => {
+            obj.disabled = "none";
+        }, 30000);
+    }
+
 }
