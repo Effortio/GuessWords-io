@@ -88,7 +88,7 @@
             right: 0;
             bottom: 0;
             width: 60%;
-            height: 60%;
+            height: fit-content;
         }
 
         textarea {
@@ -117,9 +117,14 @@
             font-weight: bold;
             margin-left: 10px;
         }
+
+        section:last-of-type>button {
+            font-weight: bold;
+            font-size: large;
+        }
     </style>
 
-    <body>
+    <body onbeforeunload="return '真的要退出吗？'">
         <h1>Admin Panel</h1>
         <div id="hide-screen">
             <div id="output-dialog">
@@ -133,7 +138,9 @@
                     <li><b>下载并覆盖</b>
                         <button
                             onclick="download(JSON.stringify(data, undefined, 4),'data.json','application/json')">下载data.json</button>
-                        <p>点击按钮将下载一个data.json文件，将其覆盖server/data.json。</p>
+                        <p>点击按钮将下载一个
+                            <b>data.json</b>文件，将其覆盖<b>server/data.json</b>。
+                        </p>
                     </li>
                 </ol>
             </div>
@@ -149,12 +156,19 @@
             </label>
             <label>
                 词库选择：
-                <select id="word-storage" onchange="data['word-type'] = this.value;">
+                <select id="word-storage"
+                    onchange="data['word-type'] = this.value;for (let i of document.getElementById('words').children) { if
+                    (this.value==i.getElementsByTagName('summary')[0].getElementsByTagName('span')[0].innerText) {
+                    i.getElementsByTagName('summary')[0].getElementsByTagName('span')[0].style.fontWeight='bold' ; }
+                    else { i.getElementsByTagName('summary')[0].getElementsByTagName('span')[0].style.fontWeight='unset';}}">
                 </select>
             </label>
         </section>
         <section>
-            <header>添加、更改和删除词库<button class="add-btn" onclick="addStorage()">添加</button></header>
+            <header>添加、更改和删除词库<button class="add-btn" onclick="addStorage()">添加词库</button>
+                <button onclick="for(let i of document.getElementById('words').children)i.open = 'open'">全部展开</button>
+                <button onclick="for(let i of document.getElementById('words').children)i.open = ''">全部收起</button>
+            </header>
             <div id="words">
             </div>
         </section>
@@ -185,17 +199,17 @@
                 }
                 let temp = "";
                 for (let i in data["word"]) {
-                    temp += "<details><summary><span>" + i + "</span><button class='add-btn' storage='"
+                    temp += "<details><summary><span" + ((i == document.getElementById("word-storage").value) ? " style=\"font-weight:bold;\">" : ">") + i + "</span><button class='add-btn' storage='"
                         + i + "' onclick='addwordinStorage(this)'>添加</button><button class='change-btn' storage='"
                         + i + "' onclick='changeStorage(this)'>更改</button><button class='delete-btn' storage='"
-                        + i + "' onclick='deleteStorage(this)'>删除</button></summary><ol>";
+                        + i + "' onclick='deleteStorage(this)'>删除</button></summary> <ol>";
                     var index = 0;
                     for (let j of data["word"][i]) {
                         temp += "<li><span>" + j + "</span><button class='change-btn' storage='"
                             + i + "' wordorder='" + index + "' onclick='changeWord(this)'>更改</button><button class='delete-btn' storage='"
                             + i + "' wordorder='" + index + "' onclick='deleteWord(this)'>删除</button>" + "</li>";
                     }
-                    temp += "</ol></details>";
+                    temp += "</ol></details > ";
                 }
                 document.getElementById("words").innerHTML = temp;
             }
@@ -262,11 +276,16 @@
         }
 
         function deleteStorage(obj) {
-            if (confirm("确定吗？这将删除词库并删除词库内的全部词语。")) {
-                delete data["word"][obj.getAttribute("storage")];
-                obj.parentNode.parentNode.parentNode.removeChild(obj.parentNode.parentNode);
+            if (Object.keys(data["word"]).length > 1) {
+                if (confirm("确定吗？这将删除词库并删除词库内的全部词语。")) {
+                    delete data["word"][obj.getAttribute("storage")];
+                    obj.parentNode.parentNode.parentNode.removeChild(obj.parentNode.parentNode);
+                }
+                refreshStorage();
+            } else {
+                alert("词库数量不足，请先添加词库");
             }
-            refreshStorage();
+
         }
 
         function changeStorage(obj) {
@@ -310,6 +329,11 @@
                 var choose = document.createElement("option");
                 choose.innerText = choose.value = i.getElementsByTagName("summary")[0].getElementsByTagName("span")[0].innerText;
                 document.getElementById("word-storage").appendChild(choose);
+                if (document.getElementById("word-storage").value == i.getElementsByTagName("summary")[0].getElementsByTagName("span")[0].innerText) {
+                    i.getElementsByTagName("summary")[0].getElementsByTagName("span")[0].style.fontWeight = "bold";
+                } else {
+                    i.getElementsByTagName("summary")[0].getElementsByTagName("span")[0].style.removeProperty("font-weight");
+                }
             }
         }
 

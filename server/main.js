@@ -2,7 +2,7 @@ const ws = require("nodejs-websocket");
 const fs = require('fs');
 const os = require("os");
 
-var filepath = "server/data.json";//配置文件
+var filepath = "server/data.json";//配置文件，绝对路径
 
 var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
 var wordAnswer = [];//单词库
@@ -40,6 +40,19 @@ var _server = ws.createServer(conn => {
                         "content": "kicked",
                         "id": str.split("id=")[1],
                         "name": storage["user"][str.split("id=")[1]]["name"]
+                    });
+                    remove(str.split("id=")[1]);
+                } else if (str.search(/^GAME set-operator/) != -1) {
+                    //转让房主
+                    storage["user"][str.split("old-id=")[1].split(",")[0]]["operator"] = false;
+                    storage["user"][str.split("new-id=")[1]]["operator"] = true;
+                    storage["message"].push({
+                        "type": "system",
+                        "content": "set-operator",
+                        "id": str.split("old-id=")[1].split(",")[0],
+                        "toid": str.split("new-id=")[1],
+                        "name": storage["user"][str.split("old-id=")[1].split(",")[0]]["name"],
+                        "toname": storage["user"][str.split("new-id=")[1]]["name"]
                     });
                     remove(str.split("id=")[1]);
                 } else if (str == "GAME require-data") {
@@ -223,6 +236,11 @@ function getip() {
         for (let i = 0; i < iface.length; i++) {
             const alias = iface[i];
             if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal && alias.netmask === '255.255.255.0') {
+                var matcher = /WebSocket\("ws:\/\/.+/;
+                console.log();
+                fs.writeFileSync(filepath.split("server/data.json")[0] + "client/index.js",
+                    fs.readFileSync(filepath.split("server/data.json")[0] + "client/index.js", { "encoding": "utf-8", "flag": "r" }).replace(/WebSocket\("ws:\/\/.+"/, "WebSocket(\"ws://" + alias.address + ":" + port + "\""),
+                    { "encoding": "utf-8" });//自动同步客户端
                 return alias.address;
             }
         }
@@ -231,5 +249,5 @@ function getip() {
 
 const port = 1145;
 _server.listen(port, function () {
-    console.log("监听ws://" + getip() + ":" + port);
-})
+    console.log("服务端已开启\n连接：ws://" + getip() + ":" + port);
+});

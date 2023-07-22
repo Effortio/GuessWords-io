@@ -1,7 +1,8 @@
 // Initialize WebSocket connection and event handlers
 var ws, id, refresh, pace = 500;
 function setup(obj) {
-    ws = new WebSocket("ws://localhost:1145");
+    //下面一行会自动更改
+    ws = new WebSocket("ws://192.168.1.103:1145");
     // Listen for the connection open event then call the ws.send function
     ws.onopen = function (e) {
         ws.send("INITALIZE username:" + document.getElementById("username").value);
@@ -48,14 +49,17 @@ function setup(obj) {
             display(JSON.parse(e.data.replace("GAME data:", "")));
         }
     }
-    document.body.onunload = () => {
-        clearInterval(refresh);
-        ws.close();
-    }
 }
 
 function kick(obj) {
     ws.send("GAME kick id=" + obj.title);
+}
+
+function setOpetator(obj) {
+    if (confirm("确定吗？你将失去房主权限！")) {
+        ws.send("GAME set-operator old-id=" + id + ",new-id=" + obj.title);
+        obj.disabled = "disabled";
+    }
 }
 
 function changeMethod() {
@@ -112,6 +116,8 @@ function displayMessage(data) {
                 tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "失去了连接";
             } else if (mess["content"] == "joined") {
                 tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "加入了游戏";
+            } else if (mess["content"] == "set-operator") {
+                tempstr += "ID为" + mess["id"] + "的玩家" + mess["name"] + "将房主权限转让给了ID为" + mess["toid"] + "的玩家" + mess["toname"];
             }
         } else if (mess["type"] == "game") {
             tempstr += "【游戏】";
@@ -155,7 +161,7 @@ function displayUser(data) {
                 }
                 tempstr += "'>" + data["user"][userown]["delay"] + "ms</small>";
                 if (data["user"][id]["operator"]) {
-                    tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button>";
+                    tempstr += "<button onclick='kick(this)' title=" + userown + ">踢出</button><button onclick='setOpetator(this)' title=" + userown + ">设为房主</button>";
                 }
             } else {
                 tempstr += " <b>(我)</b>";
