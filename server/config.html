@@ -124,7 +124,7 @@
         }
     </style>
 
-    <body onbeforeunload="//return '真的要退出吗？'">
+    <body onbeforeunload="return '真的要退出吗？'">
         <h1>Admin Panel</h1>
         <div id="hide-screen">
             <div id="output-dialog">
@@ -147,7 +147,7 @@
         </div>
         <section>
             <header>重置计数器 & 重启服务端</header>
-            <p>WebUI不支持，请手动运行server目录下的<b>restart.bat</b></p>
+            <p>WebUI不支持，请先手动运行server目录下的<b>stop.bat</b>，再运行<b>start.bat</b></p>
         </section>
         <section>
             <header>更改游戏设置</header>
