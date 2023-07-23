@@ -18,10 +18,8 @@
                 <input type="text" max="10" id="username" placeholder="长度不超过10" maxlength="10" />
             </div>
             <div>
-                <button
-                    onclick="this.disabled = 'disabled';document.getElementById('error').innerText = '';setup(this);">加入</button>
+                <button onclick="this.disabled = 'disabled';setup(this);">加入</button>
             </div>
-            <div id="error"></div>
         </div>
         <div id="game">
             <div class="my-info">
@@ -56,7 +54,7 @@
                         </div>
                     </div>
                     <div id="game-pausing">
-                        <div>游戏终止</div>
+                        <div>本轮结束</div>
                         <div>已进行<span id="has-turn"></span>局游戏</div>
                         <div>本场最高分<span id="max-score"></span>分</div>
                         <div id="is-max-score"></div>
@@ -71,7 +69,7 @@
                         </select>
                         <div id="open-letter-border">
                             <label>开字母<input id="open-letter" placeholder="开什么字母？" maxlength="1"
-                                    onkeyup="verify(this)" /></label>
+                                    onkeyup="verify(this);" /></label>
                         </div>
                         <div id="guess-border">
                             <label>猜第
@@ -96,6 +94,11 @@
                 <li>网络发生变化</li>
             </ul>
             <button onclick="window.location.reload()">重新连接</button>
+        </div>
+        <div id="blocking">
+            <h2>正在被封禁 Banned</h2>
+            <p>请等待封禁结束后再加入游戏</p>
+            <p>剩余时间：<span></span></p>
         </div>
     </body>
     <script src="index.js"></script>

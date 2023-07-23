@@ -52,7 +52,9 @@ function setup(obj) {
 }
 
 function kick(obj) {
-    ws.send("GAME kick id=" + obj.title);
+    if (confirm("确定吗？这将禁止该玩家5分钟内再次加入，请勿滥用、乱用此功能！")) {
+        ws.send("GAME kick id=" + obj.title);
+    }
 }
 
 function setOpetator(obj) {
@@ -85,7 +87,7 @@ function send(obj) {
 }
 
 function verify(obj) {
-    if (obj.value.length == 0) {
+    if (obj.value.length == 0 || obj.value.indexOf("*") != -1) {
         document.getElementById("send").disabled = "disabled";
     } else {
         document.getElementById("send").disabled = "";
@@ -139,6 +141,7 @@ function displayUser(data) {
         clearInterval(refresh);
         document.getElementById("game").style.display = "none";
         document.getElementById("disconnect").style.display = "block";
+        addCookie("BANNED", new Date().setMinutes(new Date().getMinutes() + 5), 1000 * 60);//封禁5分钟
         return;
     }
     const operator = document.getElementById("user-list");
@@ -227,5 +230,38 @@ function skipGame(obj) {
             obj.disabled = "none";
         }, 30000);
     }
+}
 
+var cookies = document.cookie.split(';');
+
+function getCookie(mkey) {
+    for (var i = 0; i < cookies.length; i++) {
+        var kv = cookies[i].split('=');
+        if (kv[0].trim() == mkey) {
+            return kv[1].trim();
+        }
+    }
+    return '';
+}
+
+function addCookie(objName, objValue, objTime) {
+    var str = objName + "=" + objValue.toString();
+    if (objTime > 0) {
+        var date = new Date();
+        var ms = objTime;
+        date.setTime(date.getTime() + ms);
+        str += "; expires=" + date.toGMTString();
+    }
+    document.cookie = str;
+}
+
+if (getCookie("BANNED") != "") {
+    document.getElementById("preparation").style.display = "none";
+    document.getElementById("blocking").style.display = "block";
+    setInterval(() => {
+        document.getElementById("blocking").getElementsByTagName("span")[0].innerText = Math.floor((parseInt(getCookie("BANNED")) - new Date()) / 60000) + ":" + Math.floor((parseInt(getCookie("BANNED")) - new Date()) % 60000 / 1000);
+        if ((parseInt(getCookie("BANNED")) - new Date()) < 0) {
+            location.reload();
+        }
+    }, 100);
 }

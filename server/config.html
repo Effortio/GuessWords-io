@@ -124,7 +124,7 @@
         }
     </style>
 
-    <body onbeforeunload="return '真的要退出吗？'">
+    <body onbeforeunload="//return '真的要退出吗？'">
         <h1>Admin Panel</h1>
         <div id="hide-screen">
             <div id="output-dialog">
@@ -152,7 +152,8 @@
         <section>
             <header>更改游戏设置</header>
             <label>单词展示个数(3~10):
-                <input type="number" min="3" max="10" id="word-length" />
+                <input type="number" min="3" max="10" id="word-length"
+                    onchange="if(parseInt(this.value)>parseInt(this.max)){this.value = this.max;}if(parseInt(this.value)<parseInt(this.min)){this.value = this.min;}data['word-length'] = this.value" />
             </label>
             <label>
                 词库选择：
@@ -219,11 +220,9 @@
 
         let arr = function (oldVal, newVal, json) {
             for (var i in json) {
-                for (var j in json[i]) {
-                    if (j == oldVal) {
-                        json[i][newVal] = json[i][j];//修改属性名为newVal
-                        delete json[i][oldVal];//删除oldVal
-                    }
+                if (i == oldVal) {
+                    json[newVal] = json[i];//修改属性名为newVal
+                    delete json[oldVal];//删除oldVal
                 }
             }
         };
@@ -291,7 +290,7 @@
         function changeStorage(obj) {
             let word = prompt("请输入要更改的名字");
             if (word != null) {
-                data["word"] = arr(obj.getAttribute("storage"), word, data["word"]);
+                arr(obj.getAttribute("storage"), word, data["word"]);
                 obj.parentNode.children[0].innerText = word;
                 obj.parentNode.parentNode.innerHTML = obj.parentNode.parentNode.innerHTML.replaceAll(/storage="[a-z0-9]+"/gi, "storage=\"" + word + "\"");
             }
@@ -301,14 +300,18 @@
         function changeWord(obj) {
             let word = prompt("请输入要更改成的单词");
             if (word != null && word.indexOf("*") == -1) {//不能含有星号
-                data["word"][obj.getAttribute("storage")][obj.getAttribute("wordorder")];
+                data["word"][obj.getAttribute("storage")][obj.getAttribute("wordorder")] = word;
                 obj.parentNode.children[0].innerText = word;
             }
         }
 
         function deleteWord(obj) {
-            delete data["word"][obj.getAttribute("storage")][obj.getAttribute("wordorder")];
-            obj.parentNode.parentNode.removeChild(obj.parentNode);
+            if (data["word"][obj.getAttribute("storage")].length > document.getElementById("word-length").value) {
+                delete data["word"][obj.getAttribute("storage")][obj.getAttribute("wordorder")];
+                obj.parentNode.parentNode.removeChild(obj.parentNode);
+            } else {
+                alert("词语数量不足，请修改单词显示数量再试！")
+            }
         }
 
         function addStorage() {

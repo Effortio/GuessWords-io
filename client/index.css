@@ -20,11 +20,31 @@ ul {
     padding: 0;
 }
 
+button:hover {
+    transform: scale(1.1);
+    transition-duration: .1s;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
 #disconnect {
     background-color: orange;
     border-radius: 10px;
     padding: 15px;
     display: none;
+}
+
+#blocking {
+    background-color: rgb(255, 134, 118);
+    border-radius: 10px;
+    padding: 15px;
+    display: none;
+}
+
+#blocking>p:last-child>span {
+    font-weight: bold;
 }
 
 #game {
