@@ -236,7 +236,6 @@ function getip() {
         for (let i = 0; i < iface.length; i++) {
             const alias = iface[i];
             if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal && alias.netmask === '255.255.255.0') {
-                var matcher = /WebSocket\("ws:\/\/.+/;
                 console.log();
                 fs.writeFileSync(filepath.split("server/data.json")[0] + "client/index.js",
                     fs.readFileSync(filepath.split("server/data.json")[0] + "client/index.js", { "encoding": "utf-8", "flag": "r" }).replace(/WebSocket\("ws:\/\/.+"/, "WebSocket(\"ws://" + alias.address + ":" + port + "\""),
