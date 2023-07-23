@@ -24,6 +24,10 @@
 6. 新增网站，将网站路径设为`client`文件夹。
 7. 停止服务器可使用`server/stop.bat`。
 
+## 编辑词库
+
+新增网站，将路径设为`client`文件夹，并打开`config.html`，即可可视化更改；也可以直接更改`data.json`。
+
 ## 遇见Bug
 
 可以发issue，但不一定会看。
