@@ -141,7 +141,7 @@ function displayUser(data) {
         clearInterval(refresh);
         document.getElementById("game").style.display = "none";
         document.getElementById("disconnect").style.display = "block";
-        addCookie("BANNED", new Date().setMinutes(new Date().getMinutes() + 5), 1000 * 60);//封禁5分钟
+        addCookie("BANNED", new Date().setMinutes(new Date().getMinutes() + 5), 1000 * 60 * 5);//封禁5分钟
         return;
     }
     const operator = document.getElementById("user-list");
