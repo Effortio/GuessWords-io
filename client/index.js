@@ -218,7 +218,7 @@ function displayEndGameInfo(data) {
     if (data["user"][id]["score"] == maxscore) {
         document.getElementById("is-max-score").innerText = "你是最高分！";
     } else {
-        document.getElementById("is-max-score").innerText = "你离最高分还差" + maxscore - data["user"][id]["score"];
+        document.getElementById("is-max-score").innerText = "你离最高分还差" + (maxscore - data["user"][id]["score"]);
     }
 }
 
