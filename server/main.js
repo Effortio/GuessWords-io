@@ -17,7 +17,6 @@ var _server = ws.createServer(conn => {
             id = identify;
             identify++;//鉴别身份
             //创建用户,op=管理员
-            console.warn("新玩家加入，当前总玩家数" + Object.keys(storage["user"]).length);
             storage["user"][id] = { "name": str.split(":")[1], "delay": "-", "operator": Object.keys(storage["user"]).length == 0 ? true : false, "score": 0 };
             storage["message"].push({
                 "type": "system",
@@ -25,6 +24,7 @@ var _server = ws.createServer(conn => {
                 "id": id,
                 "name": str.split(":")[1]
             })
+            console.warn("新玩家加入，当前总玩家数" + Object.keys(storage["user"]).length);
             conn.send("WAIT id:" + id);//发送ID
         } else {
             if (str.search(/^GAME/) != -1) {

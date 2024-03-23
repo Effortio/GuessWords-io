@@ -1,5 +1,5 @@
 // Initialize WebSocket connection and event handlers
-var ws, id, refresh, pace = 500;
+var ws, id, refresh, pace = 2000;
 function setup(obj) {
     //下面一行会自动更改
     ws = new WebSocket("ws://192.168.1.103:1145");
