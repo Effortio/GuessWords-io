@@ -20,13 +20,20 @@ ul {
     padding: 0;
 }
 
+button {
+    border: none;
+    font-size: 16px;
+    border-radius: 2px;
+    border-bottom: 1px solid;
+}
+
 button:hover {
-    background-color: aquamarine;
+    background-color: rgb(167, 253, 225);
     transition-duration: .1s;
 }
 
 button:active {
-    background-color: cadetblue;
+    background-color: rgb(144, 243, 247);
 }
 
 #disconnect {
@@ -170,7 +177,7 @@ button:active {
 }
 
 #preparation {
-    background-color: aquamarine;
+    background-color: rgb(203, 255, 238);
     border-radius: 15px;
     border: 1px solid;
 }

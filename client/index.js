@@ -34,7 +34,7 @@ function setup(obj) {
     }
     // Listen for connection errors
     ws.onerror = function (e) {
-        log("Error" + e);
+        console.log("错误：" + e);
         ws.close();
     }
     // Listen for new messages arriving at the client

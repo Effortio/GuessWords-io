@@ -17,7 +17,7 @@ var _server = ws.createServer(conn => {
             id = identify;
             identify++;//鉴别身份
             //创建用户,op=管理员
-            console.warn(Object.keys(storage["user"]).length);
+            console.warn("新玩家加入，当前总玩家数" + Object.keys(storage["user"]).length);
             storage["user"][id] = { "name": str.split(":")[1], "delay": "-", "operator": Object.keys(storage["user"]).length == 0 ? true : false, "score": 0 };
             storage["message"].push({
                 "type": "system",
@@ -158,13 +158,13 @@ var _server = ws.createServer(conn => {
 
     conn.on("error", function (err) {
         //error
-        console.log(err, "连接报错");
+        console.log(err, "ID:" + id + "连接报错");
     });
 });
 
 function remove(identify) {//移除用户
     if (identify in storage["user"]) {
-        console.warn("disconnected id ", identify, ",name ", storage["user"][identify]["name"]);
+        console.warn("断开连接 id ", identify, ",name ", storage["user"][identify]["name"]);
         if (storage["user"][identify]["operator"] && Object.keys(storage["user"]).length > 1) {//房主继承
             let index = identify + 1;
             while (!(index in storage["user"])) {
@@ -219,10 +219,11 @@ function reset() {//游戏重置
     for (let i in storage["user"]) {
         storage["user"][i]["score"] = 0;
     }
-    console.log(wordAnswer, storage["data"]["wordstorage"]);
+    console.log("第" + storage["data"]["turn"] + "轮数据", wordAnswer, storage["data"]["wordstorage"]);
 }
 
 function endgame() {
+    console.log("第" + storage["data"]["turn"] + "轮结束");
     storage["end"] = true;
     setTimeout(() => {
         reset();
@@ -236,7 +237,6 @@ function getip() {
         for (let i = 0; i < iface.length; i++) {
             const alias = iface[i];
             if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal && alias.netmask === '255.255.255.0') {
-                console.log();
                 fs.writeFileSync(filepath.split("server/data.json")[0] + "client/index.js",
                     fs.readFileSync(filepath.split("server/data.json")[0] + "client/index.js", { "encoding": "utf-8", "flag": "r" }).replace(/WebSocket\("ws:\/\/.+"/, "WebSocket(\"ws://" + alias.address + ":" + port + "\""),
                     { "encoding": "utf-8" });//自动同步客户端
