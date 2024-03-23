@@ -21,12 +21,12 @@ ul {
 }
 
 button:hover {
-    transform: scale(1.1);
+    background-color: aquamarine;
     transition-duration: .1s;
 }
 
 button:active {
-    transform: scale(0.95);
+    background-color: cadetblue;
 }
 
 #disconnect {
