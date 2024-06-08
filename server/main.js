@@ -1,252 +1,600 @@
-const ws = require("nodejs-websocket");
+const ws = require("ws");
 const fs = require('fs');
 const os = require("os");
+const configFolderPath = "server/";//配置文件所处的文件夹
 
-var filepath = "server/data.json";//配置文件，绝对路径
+let rooms = {};
+let stats = {
+    "now-user-id": 1,
+    "now-room-id": 1,
+    "max-users": 0,
+    "playing-users": 0,
+    "server-started-time": Date.now(),
+    "total-played-time": 0
+}
 
-var identify = 1, storage = { "user": {}, "data": { "turn": 0 } };//游戏数据存储
-var wordAnswer = [];//单词库
-
-reset();//游戏重置
-
-var _server = ws.createServer(conn => {
-    let id;
-    // 接收客户端返回的数据
-    conn.on("text", function (str) {
-        if (str.search(/^INITALIZE/) != -1) {
-            id = identify;
-            identify++;//鉴别身份
-            //创建用户,op=管理员
-            storage["user"][id] = { "name": str.split(":")[1], "delay": "-", "operator": Object.keys(storage["user"]).length == 0 ? true : false, "score": 0 };
-            storage["message"].push({
-                "type": "system",
-                "content": "joined",
-                "id": id,
-                "name": str.split(":")[1]
-            })
-            console.warn("新玩家加入，当前总玩家数" + Object.keys(storage["user"]).length);
-            conn.send("WAIT id:" + id);//发送ID
+const serverAddr = [1145, "/openletter"];
+const WSServer = new ws.Server({
+    "port": serverAddr[0],
+    "path": serverAddr[1]
+});
+WSServer.on("listening", () => {
+    console.log(`服务端已开启\n地址ws://<Host>:${serverAddr.join("")}`);
+});
+WSServer.on("connection", (conn, req) => {
+    function sendData(json, sendToClient) {
+        if (sendToClient !== undefined) {
+            sendToClient.send(JSON.stringify(json));
         } else {
-            if (str.search(/^GAME/) != -1) {
-                if (str.search(/^GAME delay id=/) != -1) {
-                    //接收用户延时
-                    if (id in storage["user"]) {
-                        storage["user"][id]["delay"] = str.split("delay=")[1];//更改延时
+            conn.send(JSON.stringify(json));
+        }
+    }
+
+    function getClientInstance(clientID) {
+        let thisClient = null;
+        WSServer.clients.forEach((client) => {
+            if (client.meta["id"] == clientID) {
+                thisClient = client;
+            }
+        });
+        return thisClient;
+    }
+
+    function closeRoom() {
+        if (conn.meta["room-id"] !== null) {
+            if (conn.meta["room-id"] in rooms) {
+                if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["level"] == 0) {
+                    for (const index in rooms[conn.meta["room-id"]]["users"]) {
+                        if (index != conn.meta["id"]) {
+                            sendData({
+                                "type": "room-quit",
+                                "detail": "passive"
+                            }, getClientInstance(index));
+                            getClientInstance(index).meta["room-id"] = null;
+                        }
                     }
-                } else if (str.search(/^GAME kick id=/) != -1) {
-                    //踢出用户
-                    storage["message"].push({
-                        "type": "system",
-                        "content": "kicked",
-                        "id": str.split("id=")[1],
-                        "name": storage["user"][str.split("id=")[1]]["name"]
+                    // 解散房间
+                    delete rooms[conn.meta["room-id"]];
+                } else {
+                    delete rooms[conn.meta["room-id"]]["users"][conn.meta["id"]];
+                    sendMessageToRoomClients({
+                        "type": "quit-room",
+                        "id": conn.meta["id"],
+                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
                     });
-                    remove(str.split("id=")[1]);
-                } else if (str.search(/^GAME set-operator/) != -1) {
-                    //转让房主
-                    storage["user"][str.split("old-id=")[1].split(",")[0]]["operator"] = false;
-                    storage["user"][str.split("new-id=")[1]]["operator"] = true;
-                    storage["message"].push({
-                        "type": "system",
-                        "content": "set-operator",
-                        "id": str.split("old-id=")[1].split(",")[0],
-                        "toid": str.split("new-id=")[1],
-                        "name": storage["user"][str.split("old-id=")[1].split(",")[0]]["name"],
-                        "toname": storage["user"][str.split("new-id=")[1]]["name"]
-                    });
-                    remove(str.split("id=")[1]);
-                } else if (str == "GAME require-data") {
-                    //向客户端发送游戏数据
-                    conn.send("GAME data:" + JSON.stringify(storage));
-                } else if (str == "GAME skip") {
-                    //跳过本局
-                    endgame();
                 }
-                else {
-                    if (str.search(/^GAME open-letter/) != -1) {
-                        //接收客户端开字母
-                        let temp = storage["data"]["words"];
-                        storage["data"]["words"] = [];
-                        for (var i = 0; i < wordAnswer.length; i++) {
-                            var newword = "";
-                            for (var j = 0; j < wordAnswer[i].length; j++) {
-                                if (temp[i][j] == "*") {
-                                    if (str.split("open-letter=")[1].toLowerCase() == wordAnswer[i][j].toLowerCase()) {
-                                        newword += wordAnswer[i][j];
-                                    } else {
-                                        newword += "*";
-                                    }
-                                } else {
-                                    newword += wordAnswer[i][j];
-                                }
-                            }
-                            storage["data"]["words"].push(newword);
-                        }
-                        storage["data"]["round"]++;
-                        if (storage["data"]["openedletter"].indexOf(str.split("open-letter=")[1].toLowerCase()) == -1) {
-                            storage["data"]["openedletter"].push(str.split("open-letter=")[1].toLowerCase())
-                        }
-                        storage["message"].push({
-                            "type": "game",
-                            "content": "opened-letter",
-                            "id": str.split("id=")[1].split(",")[0],
-                            "letter": str.split("open-letter=")[1],
-                            "name": storage["user"][str.split("id=")[1].split(",")[0]]["name"]
-                        });
-                        if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 10) {
-                            storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 10;
-                        }
-                    } else if (str.search(/^GAME guess/) != -1) {
-                        //接收客户端猜测单词
-                        if (storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1].indexOf("*") != -1) {
-                            if (wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1].trim() == str.split(",guess-word=")[1].trim()) {
-                                storage["message"].push({
-                                    "type": "game",
-                                    "content": "guess",
-                                    "right": true,
-                                    "id": str.split("id=")[1].split(",order=")[0],
-                                    "order": str.split("order=")[1].split(",guess-word=")[0],
-                                    "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
-                                });
-                                storage["data"]["words"][str.split("order=")[1].split(",guess-word=")[0] - 1] = wordAnswer[str.split("order=")[1].split(",guess-word=")[0] - 1];
-                                storage["user"][str.split("id=")[1].split(",order=")[0]]["score"] += 50
-                            } else {
-                                storage["message"].push({
-                                    "type": "game",
-                                    "content": "guess",
-                                    "right": false,
-                                    "id": str.split("id=")[1].split(",order=")[0],
-                                    "order": str.split("order=")[1].split(",guess-word=")[0],
-                                    "name": storage["user"][str.split("id=")[1].split(",order=")[0]]["name"]
-                                });
-                                if (storage["user"][str.split("id=")[1].split(",")[0]]["score"] >= 5) {
-                                    storage["user"][str.split("id=")[1].split(",")[0]]["score"] -= 5;
-                                }
-                            }
-                            storage["data"]["round"]++;
-                        }
-                    }
-                    //计算剩余待猜单词数量
-                    storage["data"]["leftguess"] = storage["data"]["words"].length;
-                    for (let k = 0; k < storage["data"]["words"].length; k++) {
-                        if (storage["data"]["words"][k].search(/\*/) == -1) {
-                            storage["data"]["leftguess"]--;
-                        }
-                    }
-                    if (storage["data"]["leftguess"] == 0) {
-                        endgame();
+                conn.meta["room-id"] = null;
+                stats["playing-users"]--;
+            }
+        }
+    }
+
+    function syncClientData() {
+        sendData({
+            "type": "game-data",
+            "rooms": rooms,
+            "configs": config,
+            "databases": wordsDatabase,
+            "stats": Object.assign({}, stats, {
+                "online-users": WSServer.clients.size
+            }),
+            "my-info": conn.meta
+        });
+    }
+
+    function sendMessageToRoomClients(content) {
+        for (const each in rooms[conn.meta["room-id"]]["users"]) {
+            sendData({
+                "type": "message-received",
+                "content": Object.assign({}, content, {
+                    "time": `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}`
+                }),
+            }, getClientInstance(each));
+        }
+    }
+
+    {// 分配新的ID
+        conn.meta = {
+            "id": stats["now-user-id"]++,
+            "room-id": null,
+            "join-time": Date.now(),
+            "ip": req.headers['x-forwarded-for'] === undefined ?
+                req.socket.remoteAddress :
+                req.headers['x-forwarded-for'].split(',')[0].trim()
+        }
+        if (WSServer.clients.size > stats["max-users"]) {
+            stats["max-users"] = WSServer.clients.size;
+        }
+    }
+
+    // 接收客户端返回的数据
+    conn.on("message", function (str) {
+        const data = JSON.parse(str);
+        function accessCheck(level = 0) {
+            // 权限检测
+            if (conn.meta["room-id"] !== null && rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["level"] > level) {
+                sendData({
+                    "type": "fail-request",
+                    "detail": "no-access"
+                });
+                return false;
+            }
+            return true
+        }
+        function statusCheck(status = [0]) {
+            if (conn.meta["room-id"] !== null && status.indexOf(rooms[conn.meta["room-id"]]["status"]) == -1) {
+                sendData({
+                    "type": "fail-request",
+                    "detail": "no-status"
+                });
+                return false;
+            }
+            return true;
+        }
+        function checkGameEnd() {
+            let end = true;
+            for (const iterator of rooms[conn.meta["room-id"]]["words"]) {
+                for (const each of iterator) {
+                    if (!each["guessed"]) {
+                        end = false;
                     }
                 }
             }
+            if (end) {
+                rooms[conn.meta["room-id"]]["status"] = 2;
+                sendMessageToRoomClients({
+                    "type": "game-end"
+                });
+            }
+            return end;
         }
+        function randomSelectWords(thisroom) {
+            const item = thisroom["show-words"] > wordsDatabase[thisroom["words-database-name"]["current"]].length ? wordsDatabase[thisroom["words-database-name"]["current"]].length : thisroom["show-words"];
+            let shuffled = wordsDatabase[thisroom["words-database-name"]["current"]].slice(); // 复制数组以避免修改原始数组
+            let result = [];
+
+            // Fisher-Yates 洗牌算法
+            for (let i = shuffled.length - 1; i > 0 && item > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // 从洗牌后的数组中取出前n个元素
+            result = shuffled.slice(0, item);
+            thisroom["words"] = [];
+            for (const iterator of result) {
+                let innerarray = [];
+                for (const each of iterator) {
+                    innerarray.push({
+                        "letter": each,
+                        "guessed": false
+                    })
+                }
+                thisroom["words"].push(innerarray);
+            }
+            for (const key in thisroom["users"]) {
+                const element = thisroom["users"][key];
+                element["left-open-letter-chances"] = item;
+            }
+
+        }
+        const userTemplate = (level, chance) => {
+            return {
+                "name": data.username,
+                "level": level, "score": 0,
+                "connection-delay": 0,
+                "join-time": Date.now(),
+                "left-open-letter-chances": chance === undefined ? null : chance
+            }
+        };
+        switch (data.type) {
+            case "ping":
+                if (conn.meta["room-id"] !== null) {
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["connection-delay"] = data["last-connection-delay"];
+                }
+                sendData({ "type": "ping-back" });
+                break;
+            case "require-data":
+                // syncClientData();
+                break;
+            case "create-room":
+                if (Object.keys(rooms) > config["max-rooms"]) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "create-room",
+                        "reason": "full-of-rooms"
+                    });
+                } else {
+                    conn.meta["room-id"] = stats["now-room-id"]++;
+                    rooms[conn.meta["room-id"]] = {
+                        "name": data.name ? data.name : "新房间",
+                        "users": {
+                            // 0:房主 1:管理员 2:玩家
+                            [conn.meta["id"]]: userTemplate(0)
+                        },
+                        "banned-user-ips": [],
+                        "words": [],
+                        "words-database-name": {
+                            "current": data["words-database"] in wordsDatabase ? data["words-database"] : wordsDatabase[Object.keys(wordsDatabase)[0]],
+                            "next": null
+                        },
+                        "opened-letters": [],
+                        "status": 0,
+                        "start-time": Date.now(),
+                        "max-users": !parseInt(data["max-users"]) ? config["max-users"]["max"] : parseInt(data["max-users"]),
+                        "password": data.password == "" ? null : data.password,
+                        "turns": 1,
+                        "show-words": !parseInt(data["words-guess"]) ? config["guess-words"]["max"] : parseInt(data["words-guess"]),
+                        "frozen": false
+                        // 0:游戏中 1:等待启动中 2:暂停
+                    }
+                    // console.log(data);
+                    stats["playing-users"]++;
+                    randomSelectWords(rooms[conn.meta["room-id"]]);
+                    sendData({
+                        "type": "success-request",
+                        "detail": "create-room"
+                    });
+                }
+                break;
+            case "join-room":
+                if (!(data["roomID"] in rooms)) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "join-room",
+                        "reason": "room-does-not-exist"
+                    });
+                } else if (rooms[data["roomID"]]["frozen"]) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "join-room",
+                        "reason": "room-frozen"
+                    });
+                } else if (rooms[data["roomID"]]["banned-user-ips"].includes(conn.meta["ip"])) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "join-room",
+                        "reason": "being-banned"
+                    });
+                } else if (Object.keys(rooms[data["roomID"]]["users"]).length >= rooms[data["roomID"]]["max-users"]) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "join-room",
+                        "reason": "full-of-users"
+                    });
+                } else if (rooms[data["roomID"]]["password"] !== null && data.password != rooms[data["roomID"]]["password"]) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "join-room",
+                        "reason": "password-incorrect"
+                    });
+                } else {
+                    conn.meta["room-id"] = parseInt(data["roomID"]);
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]] = userTemplate(2, rooms[data["roomID"]]["words"].length);
+                    stats["playing-users"]++;
+                    sendMessageToRoomClients({
+                        "type": "join-room",
+                        "id": conn.meta["id"],
+                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                    });
+                    sendData({
+                        "type": "success-request",
+                        "detail": "join-room",
+                    });
+                }
+                break;
+            case "quit-room":
+                closeRoom();
+                sendData({
+                    "type": "room-quit",
+                    "detail": "active"
+                });
+                break;
+            case "modify-room":
+                if (!accessCheck()) return;
+                function errorHandler() {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "modify-room"
+                    });
+                }
+                if (data.name !== null) {
+                    if (data.name.length) {
+                        rooms[conn.meta["room-id"]]["name"] = data.name;
+                    } else {
+                        errorHandler();
+                        return;
+                    }
+                }
+                if (data["max-users"] !== null) {
+                    if (isNaN(data["max-users"]) || parseInt(data["max-users"]) < rooms[conn.meta["room-id"]]["users"].length || parseInt(data["max-users"]) > config["max-users"]["max"]) {
+                        errorHandler();
+                        return;
+                    } else {
+                        rooms[conn.meta["room-id"]]["max-users"] = parseInt(data["max-users"]);
+                    }
+                }
+                if (data["password"] !== "[{NO CHANGE FOR IT}]") {
+                    rooms[conn.meta["room-id"]]["password"] = data["password"];
+                }
+                if (data["words-guess"] !== null) {
+                    if (isNaN(data["words-guess"]) || parseInt(data["words-guess"]) < config["guess-words"]["min"] || parseInt(data["words-guess"]) > config["guess-words"]["max"]) {
+                        errorHandler();
+                        return;
+                    } else {
+                        rooms[conn.meta["room-id"]]["show-words"] = parseInt(data["words-guess"]);
+                    }
+                }
+                if (data["words-database"] !== null) {
+                    if (data["words-database"] == "[{CANCEL CHANGE FOR IT}]") {
+                        rooms[conn.meta["room-id"]]["words-database-name"]["next"] = null;
+                    } else {
+                        if (data["words-database"] in wordsDatabase) {
+                            rooms[conn.meta["room-id"]]["words-database-name"]["next"] = data["words-database"];
+                        } else {
+                            errorHandler();
+                            return;
+                        }
+                    }
+                }
+                sendMessageToRoomClients({
+                    "type": "modify-room",
+                    "id": conn.meta["id"],
+                    "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                });
+                sendData({
+                    "type": "success-request",
+                    "detail": "modify-room"
+                });
+                break;
+            case "switch-game-status":
+                if (!accessCheck()) return;
+                if (rooms[conn.meta["room-id"]]["status"] == 2) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "switch-room-status"
+                    });
+                } else {
+                    if (rooms[conn.meta["room-id"]]["status"] == 0) {
+                        rooms[conn.meta["room-id"]]["status"] = 1;
+                    } else {
+                        rooms[conn.meta["room-id"]]["status"] = 0;
+                    }
+                    sendMessageToRoomClients({
+                        "type": "switch-game-status",
+                        "id": conn.meta["id"],
+                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                    });
+                    sendData({
+                        "type": "success-request",
+                        "detail": "switch-room-status"
+                    });
+                }
+                break;
+            case "open-letter":
+                if (!statusCheck([0])) return;
+                if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"] < 1) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "no-open-letters-chance"
+                    });
+                    return;
+                }
+                if (rooms[conn.meta["room-id"]]["opened-letters"].indexOf(data.letter) == -1) {
+                    rooms[conn.meta["room-id"]]["opened-letters"].push(data.letter);
+                    for (const iterator of rooms[conn.meta["room-id"]]["words"]) {
+                        for (const each of iterator) {
+                            if (each["letter"] == data.letter) {
+                                each["guessed"] = true;
+                            }
+                        }
+                    }
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"]--;
+                    sendMessageToRoomClients({
+                        "type": "open-letter",
+                        "id": conn.meta["id"],
+                        "letter": data.letter,
+                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                    });
+                }
+                sendData({
+                    "type": "success-request",
+                    "detail": "open-letter"
+                });
+                checkGameEnd();
+                break;
+            case "switch-game-frozen":
+                if (!accessCheck()) return;
+                if (rooms[conn.meta["room-id"]]["frozen"]) {
+                    rooms[conn.meta["room-id"]]["frozen"] = false;
+                } else {
+                    rooms[conn.meta["room-id"]]["frozen"] = true;
+                }
+                sendMessageToRoomClients({
+                    "type": "switch-game-frozen",
+                    "id": conn.meta["id"],
+                    "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                });
+                sendData({
+                    "type": "success-request",
+                    "detail": "switch-room-frozen"
+                });
+                break;
+            case "guess-word":
+                if (!statusCheck([0])) return;
+                if (isNaN(data.order) || data.order < 1 || data.order > rooms[conn.meta["room-id"]]["words"].length) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "guess-word",
+                        "reason": "order-incorrect"
+                    });
+                    return;
+                }
+                if (data.guess.length != rooms[conn.meta["room-id"]]["words"][parseInt(data.order) - 1].length) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "guess-word",
+                        "reason": "guess-length-incorrect"
+                    });
+                    return;
+                }
+                let leftguess = 0;
+                let correct = true;
+                let wordIndex = 0;
+                for (const each of rooms[conn.meta["room-id"]]["words"][parseInt(data.order) - 1]) {
+                    if (!each["guessed"]) {
+                        leftguess++;
+                    }
+                    if (each["letter"].toLowerCase() != data.guess[wordIndex].toLowerCase()) {
+                        correct = false;
+                    }
+                    wordIndex++;
+                }
+                if (correct) {
+                    if (leftguess == 0) {
+                        sendMessageToRoomClients({
+                            "type": "guess-word",
+                            "detail": "no-influence",
+                            "id": conn.meta["id"],
+                            "guess-id": data.order,
+                            "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                        });
+                    } else {
+                        if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"] <= rooms[conn.meta["room-id"]]["words"].length) {
+                            rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"]++;
+                        }
+                        for (const each of rooms[conn.meta["room-id"]]["words"][parseInt(data.order) - 1]) {
+                            each["guessed"] = true;
+                        }
+                        rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["score"] += 10 * leftguess;
+                        sendMessageToRoomClients({
+                            "type": "guess-word",
+                            "detail": "success",
+                            "id": conn.meta["id"],
+                            "guess-id": data.order,
+                            "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                        });
+                        checkGameEnd();
+                    }
+                } else {
+                    sendMessageToRoomClients({
+                        "type": "guess-word",
+                        "detail": "fail",
+                        "id": conn.meta["id"],
+                        "guess-id": data.order,
+                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                    });
+                }
+                sendData({
+                    "type": "success-request",
+                    "detail": "guess-word"
+                });
+                break;
+            case "skip-turn":
+                if (!accessCheck()) return;
+                if (!statusCheck([0, 1])) return;
+                rooms[conn.meta["room-id"]]["status"] = 2;
+                sendMessageToRoomClients({
+                    "type": "skip-turn",
+                    "id": conn.meta["id"],
+                    "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                });
+                sendData({
+                    "type": "success-request",
+                    "detail": "skip-turn"
+                });
+                break;
+            case "restart-game":
+                if (!accessCheck()) return;
+                if (!statusCheck([2])) return;
+                // 游戏重新开始
+                if (rooms[conn.meta["room-id"]]["words-database-name"]["next"] !== null) {
+                    rooms[conn.meta["room-id"]]["words-database-name"]["current"] = rooms[conn.meta["room-id"]]["words-database-name"]["next"];
+                }
+                rooms[conn.meta["room-id"]]["words-database-name"]["next"] = null;
+                randomSelectWords(rooms[conn.meta["room-id"]]);
+                for (const iterator in rooms[conn.meta["room-id"]]["users"]) {
+                    rooms[conn.meta["room-id"]]["users"][iterator]["score"] = 0;
+                }
+                rooms[conn.meta["room-id"]]["opened-letters"] = [];
+                rooms[conn.meta["room-id"]]["turns"]++;
+                rooms[conn.meta["room-id"]]["status"] = 0;
+
+                sendMessageToRoomClients({
+                    "type": "restart-game",
+                    "id": conn.meta["id"],
+                    "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                });
+                sendData({
+                    "type": "success-request",
+                    "detail": "restart-game"
+                });
+                break;
+            case "operate-user":
+                if (!(data["refer-id"] in rooms[conn.meta["room-id"]]["users"])) {
+                    sendData({
+                        "type": "fail-request",
+                        "detail": "operate-user",
+                        "reason": "id-incorrect"
+                    });
+                }
+                switch (data["method"]) {
+                    case "set-owner":
+                        if (!accessCheck(0)) return;
+                        rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["level"] = 2;
+                        rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["level"] = 0;
+                        break;
+                    case "set-op":
+                        if (!accessCheck(0)) return;
+                        rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["level"] = 1;
+                        break;
+                    case "deset-op":
+                        if (!accessCheck(0)) return;
+                        rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["level"] = 2;
+                        break;
+                    case "kick-and-ban":
+                        rooms[conn.meta["room-id"]]["banned-user-ips"].push(getClientInstance(data["refer-id"]).meta["ip"]);
+                    case "kick":
+                        if (!accessCheck(1)) return;
+                        getClientInstance(data["refer-id"]).meta["room-id"] = null;
+                        sendData({
+                            "type": "room-quit",
+                            "detail": "banned"
+                        }, getClientInstance(data["refer-id"]));
+                        delete rooms[conn.meta["room-id"]]["users"][data["refer-id"]];
+                        break;
+                    default:
+                        break;
+                }
+                sendMessageToRoomClients({
+                    "type": "operate-user",
+                    "detail": data["method"],
+                    "id": conn.meta["id"],
+                    "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"],
+                    "operated-id": data["refer-id"],
+                    "operated-name": rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["name"]
+                });
+                sendData({
+                    "type": "success-request",
+                    "detail": "operate-user"
+                });
+                break;
+            default:
+                console.log("无法解析的请求", data);
+                break;
+        }
+        // 同步数据
+        syncClientData();
     });
 
     //客户端关闭连接
     conn.on("close", function (e) {
-        console.log("断开连接 ID", id);
-        if (id in storage["user"]) {
-            storage["message"].push({
-                "type": "system",
-                "content": "closed",
-                "id": id,
-                "name": storage["user"][id]["name"]
-            });
-            remove(id);
-        }
-
+        closeRoom();
+        stats["total-played-time"] += Date.now() - conn.meta["join-time"];
+        console.log("断开连接 ID", conn.meta["id"]);
     });
 
-    conn.on("error", function (err) {
-        //error
-        console.log(err, "ID:" + id + "连接报错");
-    });
 });
 
-function remove(identify) {//移除用户
-    if (identify in storage["user"]) {
-        console.warn("断开连接 id ", identify, ",name ", storage["user"][identify]["name"]);
-        if (storage["user"][identify]["operator"] && Object.keys(storage["user"]).length > 1) {//房主继承
-            let index = identify + 1;
-            while (!(index in storage["user"])) {
-                index++;
-            }
-            storage["user"][index]["operator"] = true;
-        }
-        delete storage["user"][identify];
-    }
-}
-
-function getRandomArrayElements(arr, count) {
-    let shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;  //只是声明变量的方式, 也可以分开写
-    while (i-- > min) {
-        index = Math.floor((i + 1) * Math.random()); //这里的+1 是因为上面i--的操作  所以要加回来
-        temp = shuffled[index];  //即值交换
-        shuffled[index] = shuffled[i];
-        shuffled[i] = temp;
-    }
-    return shuffled.slice(min);
-}
-
-function shuffleWord(data, length) {//获得随机单词库
-    wordAnswer = getRandomArrayElements(data, length);
-    for (const each of wordAnswer) {
-        var newword = "";
-        for (let i of each) {
-            if (i.search(/[A-Za-z0-9]/) != -1) {
-                newword += "*"
-            } else {
-                newword += i;
-            }
-        }
-        storage["data"]["words"].push(newword);
-    }
-}
-
-function reset() {//游戏重置
-    let data = JSON.parse(fs.readFileSync(filepath, { "encoding": "utf-8", "flag": "r" }));//读取配置
-    storage["data"] = {
-        "words": [],
-        "openedletter": [],
-        "round": 1,
-        "leftguess": 0,
-        "turn": storage["data"]["turn"] + 1,
-        "wordstorage": data["word-type"]
-    };
-    shuffleWord(data["word"][data["word-type"]], parseInt(data["word-length"]));
-    storage["data"]["leftguess"] = wordAnswer.length;
-    storage["message"] = [];
-    storage["end"] = false;
-    for (let i in storage["user"]) {
-        storage["user"][i]["score"] = 0;
-    }
-    console.log("第" + storage["data"]["turn"] + "轮数据", wordAnswer, storage["data"]["wordstorage"]);
-}
-
-function endgame() {
-    console.log("第" + storage["data"]["turn"] + "轮结束");
-    storage["end"] = true;
-    setTimeout(() => {
-        reset();
-    }, 3000);
-}
-
-function getip() {
-    const interfaces = os.networkInterfaces();
-    for (let devName in interfaces) {
-        const iface = interfaces[devName];
-        for (let i = 0; i < iface.length; i++) {
-            const alias = iface[i];
-            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal && alias.netmask === '255.255.255.0') {
-                fs.writeFileSync(filepath.split("server/data.json")[0] + "client/index.js",
-                    fs.readFileSync(filepath.split("server/data.json")[0] + "client/index.js", { "encoding": "utf-8", "flag": "r" }).replace(/WebSocket\("ws:\/\/.+"/, "WebSocket(\"ws://" + alias.address + ":" + port + "\""),
-                    { "encoding": "utf-8" });//自动同步客户端
-                return alias.address;
-            }
-        }
-    }
-}
-
-const port = 1145;
-_server.listen(port, function () {
-    console.log("服务端已开启\n连接：ws://" + getip() + ":" + port);
-});
+const config = JSON.parse(fs.readFileSync(configFolderPath + "config.json", "utf-8"));
+const wordsDatabase = JSON.parse(fs.readFileSync(configFolderPath + "database.json", "utf-8"));

@@ -3,104 +3,446 @@
 
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content=" initial-scale=1.0">
-        <title>开字母</title>
-        <link rel="stylesheet" href="index.css">
+        <meta name="viewport" content="initial-scale=1.0">
+        <title>在线开字母</title>
+        <link rel="stylesheet" href="source/css/style.css">
+        <link rel="stylesheet" href="source/css/svg.css">
     </head>
 
     <body>
-        <h1>开字母</h1>
-        <div id="preparation">
+        <div id="loading-shader">
             <div>
-                用户名
-            </div>
-            <div>
-                <input type="text" max="10" id="username" placeholder="长度不超过10" maxlength="10" />
-            </div>
-            <div>
-                <button onclick="this.disabled = 'disabled';setup(this);">加入</button>
+                <div class="loading-icon big" itemid="2"></div>
+                <span class="strong">正在加载中</span>
             </div>
         </div>
-        <div id="game">
-            <div class="my-info">
-                <div class="title">我的信息</div>
-                <div id="username-display"></div>
-                <div>#<span id="id-display"></span></div>
-                <div id="operator"></div>
-                <div><span id="score"></span>分</div>
-                <div>
-                    <span id="delay">-</span>ms
+        <div id="popup-shader">
+            <div id="popup-border">
+                <div id="popup-content">
+                    <div data-type="stats-show">
+                        <header>信息</header>
+                        <div id="switch-stat-page-controller">
+                            <span>我的信息</span>
+                            <span>游戏统计</span>
+                            <!-- <span>?</span> -->
+                        </div>
+                        <div id="stats-container">
+                            <table class="stats-chart">
+                                <tr>
+                                    <td>我的用户ID</td>
+                                    <td class="user-id-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>我的IP</td>
+                                    <td id="user-ip-label">-</td>
+                                </tr>
+                            </table>
+                            <table class="stats-chart">
+                                <tr>
+                                    <td>目前在线人数</td>
+                                    <td class="current-online-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>目前游玩人数</td>
+                                    <td id="current-playing-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>历史最高在线人数</td>
+                                    <td id="max-online-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>历史总计在线人数</td>
+                                    <td id="total-online-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>历史创建房间数</td>
+                                    <td id="total-rooms-label">-</td>
+                                </tr>
+                                <tr>
+                                    <td>我的游玩时间</td>
+                                    <td id="total-played-time-label"></td>
+                                </tr>
+                                <tr>
+                                    <td>平均游玩时间</td>
+                                    <td id="average-played-time-label"></td>
+                                </tr>
+                                <tr>
+                                    <td>服务器在线时间</td>
+                                    <td id="server-on-time-label"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div data-type="game-rules">
+                        <header>游戏规则</header>
+                        <div>
+                            <p>游戏为在线多人联机游戏。玩家需要进行团队合作，共同破译出单词的谜底。</p>
+                            <p>游戏开始时，将按照房间设置，从选择的词库中随机挑选指定个数的词，并放置在“猜测区域”中，接下来即可开始游戏。</p>
+                            <p>你可以选择开字母，也就是把这些单词中所有的与你输入的<b>单个字符</b>（包括空格等符号）所匹配的亮出来其所在位置。</p>
+                            <p>你的每一次开字母都将消耗一次<b>开字母机会</b>。初始机会和单词数量相等，每猜对一个词可回复一次机会。</p>
+                            <p>如果你有把握猜出这个单词，可以在“猜测”区域输入完整单词，如果匹配则可获得对应分数，越早猜对分数越多。</p>
+                            <p>如果所有单词全部猜出，本轮游戏结束。</p>
+                        </div>
+                    </div>
+                    <div data-type="game-about">
+                        <header>开字母</header>
+                        <p>NEW EDITION</p>
+                        <p>Made by Leoministry.</p>
+                    </div>
+                </div>
+                <button id="close-popup-button" class="big">
+                    关闭
+                </button>
+            </div>
+            <div id="dialog-border">
+                <p id="dialog-message" class="strong">确定要？</p>
+                <div><small id="dialog-detail-message"></small></div>
+                <div id="dialog-modules">
+                    <div>
+                        <input type="text" id="dialog-input" />
+                        <div id="dialog-input-error-info" class="red-fg"></div>
+                    </div>
+                </div>
+                <div class="confirm-buttons">
+                    <button id="cancel-dialog-button">取消</button>
+                    <button id="confirm-dialog-button">确定</button>
                 </div>
             </div>
-            <div class="content">
-                <div class="left">
-                    <ul id="user-list">获取玩家中
-                    </ul>
-                </div>
-                <div class="middle">
-                    <div id="while-gaming">
-                        <div class="game-message">
-                            <div>第<span id="turn">-</span>局</div>
-                            <div>第<span id="round">-</span>轮</div>
-                            <div>剩余未知词语<span id="left-guess">-</span>个</div>
-                            <div>已开字母<span id="opened-letter"></span></div>
-                            <div>词库<span id="word-storage"></span></div>
-                            <button onclick="ws.send('GAME require-data')">刷新</button>
-                            <button onclick="skipGame(this)" id="skip">跳过本局</button>
-                        </div>
-                        <div class="word-list-border">
-                            <ol id="word-list">
-                            </ol>
-                        </div>
-                    </div>
-                    <div id="game-pausing">
-                        <div>本轮结束</div>
-                        <div>已进行<span id="has-turn"></span>局游戏</div>
-                        <div>本场最高分<span id="max-score"></span>分</div>
-                        <div id="is-max-score"></div>
-                        <div>将在3秒后重新开始……</div>
+        </div>
+        <div class="background-card"></div>
+        <main>
+            <div id="header-line">
+                <span id="current-time-label">12:34</span>
+                <span>信息</span>
+                <span>开字母</span>
+                <span>刷新</span>
+                <span><i>正在连接中</i></span>
+            </div>
+            <div id="connection-labels">
+                <div id="connecting-to-server" class="card">
+                    <header>正在建立连接中</header>
+                    <div class="loading-icon big inline-block" itemid="1"></div>
+                    <div class="wide-label">
+                        尝试连接到位于<code class="connection-address-label">localhost</code>的服务器中……
                     </div>
                 </div>
-                <div class="right">
-                    <div class="game-run-border">
-                        <select id="method" onchange="changeMethod()">
-                            <option value="open-letter">开字母</option>
-                            <option value="guess">猜测</option>
-                        </select>
-                        <div id="open-letter-border">
-                            <label>开字母<input id="open-letter" placeholder="开什么字母？" maxlength="1"
-                                    onkeyup="verify(this);" /></label>
-                        </div>
-                        <div id="guess-border">
-                            <label>猜第
-                                <input id="guess-order" placeholder="第几个？" type="number" min="1" max="1" value="1" />个是
-                            </label><input id="guess-word" placeholder="猜的是什么？" onkeyup="verify(this)" />
-                        </div>
-                        <div><button onclick="send(this)" id="send" disabled="disabled">发送</button>
+                <div id="success-in-connecting" class="card">
+                    <header>连接成功</header>
+                    <div class="done-icon big inline-block"></div>
+                    <div class="wide-label">游戏马上开始……</div>
+                </div>
+                <div id="fail-to-connect" class="card">
+                    <header>连接失败</header>
+                    <div>
+                        <div class="error-icon big inline-block"></div>
+                        <div class="wide-label">
+                            连接到位于<code class="connection-address-label">localhost</code>的服务器失败……
                         </div>
                     </div>
-                    <div class="message-display-border">
-                        <ul id="message-display"></ul>
+                    <p>
+                        可能原因：<br>
+                        ·服务器尚未开启或报错<br>
+                        ·连接地址有误<br>
+                    </p>
+                    <p>
+                        <button class="reload-page-button"></button>
+                    </p>
+                </div>
+                <div id="fail-to-continue-connecting" class="label card">
+                    <header>连接丢失</header>
+                    <div>
+                        <div class="error-icon big inline-block"></div>
+                        <div class="wide-label">
+                            与位于<code class="connection-address-label">localhost</code>的服务器的连接丢失……
+                        </div>
+                    </div>
+                    <p>
+                        可能原因：<br>
+                        ·服务器意外关闭<br>
+                        ·服务器发生错误<br>
+                        ·你的网络不佳<br>
+                    </p>
+                    <p>
+                        <button class="reload-page-button"></button>
+                    </p>
+                </div>
+            </div>
+            <div id="after-connecting" class="center">
+                <div id="selecting-rooms" class="center">
+                    <header>选择房间</header>
+                    <p>
+                        你的名称
+                        <input type="text" maxlength="10" placeholder="长度不超过10" class="long-input" value="新玩家"
+                            id="username-input" />
+                        ID
+                        <b class="user-id-label"></b>
+                    </p>
+                    <div>
+                        <button id="create-room-button">创建房间</button>
+                        当前房间数<span id="room-numbers-label"></span> / <span id="max-rooms-label"></span>
+                    </div>
+                    <details>
+                        <summary>创建房间设置</summary>
+                        <div>
+                            房间名 <input type="text" maxlength="10" class="long-input" id="new-room-name-input"
+                                placeholder="新房间" />
+                            <small>最长10字符</small>
+                        </div>
+                        <div>
+                            房间人数上限 <input type="number" min="3" max="20" placeholder="默认最大" id="max-users-input" />
+                            <small><span class="room-max-users-min-label"></span>~<span
+                                    class="room-max-users-max-label"></span></small>
+                        </div>
+                        <div>
+                            词库
+                            <select class="words-database-list">
+                            </select>
+                        </div>
+                        <div>
+                            猜测单词数量 <input type="number" min="3" max="10" id="guess-words-input" placeholder="默认最大" />
+                            <small><span class="guess-words-number-min-label"></span>~<span
+                                    class="guess-words-number-max-label"></span></small>
+                        </div>
+                        <div>
+                            <small>*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</small>
+                        </div>
+                        <div>
+                            房间密码 <input maxlength="10" id="room-password-input" placeholder="留空以禁用密码"
+                                class="long-input" />
+                        </div>
+                    </details>
+                    <div id="room-list">
+                    </div>
+                </div>
+                <div id="room-playing">
+                    <header><span id="room-owner-label"></span></header>
+                    <div>
+                        <small>
+                            ID <span id="room-id-label"></span>
+                            <span id="private-room-label">
+                                <span class="seperating-label"></span>🔒需要密码
+                            </span>
+                            <span id="frozen-room-label">
+                                <span class="seperating-label"></span>❄冻结中
+                            </span>
+                            <span class="seperating-label"></span>
+                            房间时长<span id="room-open-time-label"></span>
+                            <span class="seperating-label"></span>
+                            参加时长<span id="playing-time-label"></span>
+                        </small>
+                    </div>
+                    <div>
+                        <button id="quit-room-button">退出房间</button>
+                        <button id="view-game-rules-button">查看游戏规则</button>
+                        <details id="room-inner-settings">
+                            <summary>房间设置</summary>
+                            <small>留空以取消更改对应设置</small>
+                            <p>
+                            <div>
+                                房间名 <input type="text" maxlength="10" placeholder="(不更改)" class="long-input"
+                                    id="new-room-name-inner-input" />
+                                <small>最长10字符</small>
+                            </div>
+                            <div>
+                                房间人数上限 <input type="number" max="20" placeholder="(不更改)" id="max-users-inner-input" />
+                                <small>房间当前人数~<span class="room-max-users-max-label"></span></small>
+                            </div>
+                            <hr />
+                            <div>
+                                词库 <select type="checkbox" id="room-words-database-name-modify-enable">
+                                    <option value="no-change" selected>不更改</option>
+                                    <option value="change">设置更改</option>
+                                    <option value="cancel-change">撤销更改</option>
+                                </select>
+                                <select class="words-database-list">
+                                </select>
+                            </div>
+                            <div>
+                                猜测单词数量 <input type="number" min="3" max="10" placeholder="(不更改)"
+                                    id="guess-words-inner-input" />
+                                <small><span class="guess-words-number-min-label"></span>~<span
+                                        class="guess-words-number-max-label"></span></small>
+                                <small class="red-fg">下一轮游戏时生效</small>
+                            </div>
+                            <div id="modified-words-database-label"><small>下个词库名称更改为<code
+                                        id="next-words-database-name-label"></code></small></div>
+                            <div>
+                                <small>*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</small>
+                            </div>
+                            <hr />
+                            <div>
+                                房间密码 <select type="checkbox" id="room-password-enabled">
+                                    <option value="no-change" selected>不更改</option>
+                                    <option value="change">更改</option>
+                                </select>
+                                <input maxlength="10" id="room-password-inner-input" placeholder="留空以禁用密码"
+                                    class="long-input" />
+                            </div>
+                            <div>
+                                当前密码 <code id="room-password"></code> <label><input id="show-or-hide-room-password"
+                                        type="checkbox" />显示密码</label>
+                            </div>
+                            </p>
+                            <button id="apply-modify-room-button">应用更改</button>
+                        </details>
+                    </div>
+                    <div class="game-main-area">
+                        <div>
+                            <div>
+                                <span class="strong">玩家列表</span>&nbsp;
+                                <b id="room-users-number-label"></b> / <span id="room-max-users-label"></span>
+                            </div>
+                            <div id="user-list" class="white-area">
+
+                            </div>
+                            <details id="user-operations-detail">
+                                <summary>玩家操作</summary>
+                                对玩家<select id="player-to-operate-list"></select>
+                                <select id="user-operations-list">
+                                    <optgroup label="设置权限" data-access="0">
+                                        <option value="set-owner">设为房主</option>
+                                        <option value="set-op">设为管理员</option>
+                                        <option value="deset-op">清除管理员</option>
+                                    </optgroup>
+                                    <optgroup label="管理人员" data-access="1">
+                                        <option value="kick">踢出</option>
+                                        <option value="kick-and-ban">踢出并封禁</option>
+                                    </optgroup>
+                                </select>
+                                <button id="execute-operation-button">执行</button>
+                            </details>
+                        </div>
+                        <div>
+                            <span class="strong">游戏区域</span>
+                            <div class="playing-area">
+                                <div class="white-area">
+                                    <div class="game-panel">
+                                        <div>
+                                            <div class="yellow-bg inline-block" id="game-status">
+                                                暂停中
+                                            </div>
+                                            <div>
+                                                <button id="continue-or-pause-game-button">继续游戏</button>
+                                                <button id="skip-turn-button">跳过本局</button>
+                                                <button id="restart-button">重新开始</button>
+                                                <button id="switch-room-frozen-button">冻结房间</button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                游戏进行第<span class="strong" id="turns-label">1</span>轮
+                                            </div>
+                                            <div>
+                                                当前词库名<code id="current-words-database-name-label"></code>
+                                            </div>
+                                            <div>
+                                                剩余单词数<span class="strong" id="left-guess-label"></span> / <span
+                                                    id="total-guess-label"></span> <span
+                                                    id="total-progress-of-this-turn" class="strong"></span>%
+                                            </div>
+                                            <div>
+                                                我的分数<span class="score-label" id="my-score-right-label"></span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <details open>
+                                                <summary><span class="strong">已开字母(<span
+                                                            id="attempts-label">1</span>)</span></summary>
+                                                <div id="opened-letters-list"></div>
+                                            </details>
+                                            <div>
+                                                我的剩余开字母次数<span id="left-open-letter-chances-label"
+                                                    class="open-letter-chances-label"></span>/<span
+                                                    id="max-open-letter-chances-label"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="white-area">
+                                    <div class="guessing-area">
+                                        <div class="subtitle">单词列表</div>
+                                        <div>
+                                            <div id="word-list">
+
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div id="guessing-input-area">
+                                                <div>
+                                                    <div>
+                                                        <h3>目前无法猜测</h3>
+                                                        <small>游戏暂停或结束</small>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="subtitle">开字母</div>
+                                                    <div>
+                                                        开字母<input type="text" maxlength="1" class="short-input"
+                                                            placeholder="Here!" id="open-letter-input" />
+                                                        <button id="open-letter-button">提交</button>
+                                                    </div>
+                                                    <div class="subtitle">猜测</div>
+                                                    <div>
+                                                        <p>
+                                                            猜测第<input id="guess-order-label" type="number" min="1"
+                                                                placeholder="单词序号" value="1"></input>个是<br /><input
+                                                                class="long-input" placeholder="记得完整输入哦~"
+                                                                id="guess-a-word-input" /><br />
+                                                            <small>长度<span
+                                                                    id="guessing-word-length-label"></span></small>
+                                                        </p>
+                                                        <div>
+                                                            <button class="modify-order-button" method="up">↑</button>
+                                                            <button class="modify-order-button" method="down">↓</button>
+                                                            <button id="submit-guess-button">提交</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div>
+                                            <div class="subtitle">消息<button id="clear-message-button">清空</button>
+                                            </div>
+
+                                            <div id="live-message-box">
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="room-quit-message">
+                    <div id="room-active-quiting-label" class="card">
+                        <header>房间已退出</header>
+                        <p>你已退出当前房间。可再次选择房间游玩。</p>
+                        <button class="return-selecting-button strong">返回</button>
+                    </div>
+                    <div id="room-passive-quiting-label" class="card">
+                        <header>房间已被关闭</header>
+                        <p>当前房间已被房主解散/房主已断开连接。可再次选择房间游玩。</p>
+                        <button class="return-selecting-button strong">返回</button>
+                    </div>
+                    <div id="room-kicked-quiting-label" class="card">
+                        <header>你被踢出房间</header>
+                        <p>你已被踢出当前房间。依房间管理员或房主设定，你可能无法再次加入房间。</p>
+                        <button class="return-selecting-button strong">返回</button>
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="disconnect">
-            <h2>× 失去连接 Disconnected</h2>
-            <p>可能原因是：</p>
-            <ul>
-                <li>被房主踢出</li>
-                <li>服务器关闭</li>
-                <li>网络发生变化</li>
-            </ul>
-            <button onclick="window.location.reload()">重新连接</button>
-        </div>
-        <div id="blocking">
-            <h2>× 正在被封禁 Banned</h2>
-            <p>请等待封禁结束后再加入游戏</p>
-            <p>剩余时间：<span></span></p>
-        </div>
+            <script src="source/js/renderer.js"></script>
+            <script src="source/js/game.js"></script>
+
+            <script src="source/js/events.js"></script>
+            <script src="source/js/display.js"></script>
+
+        </main>
     </body>
-    <script src="index.js"></script>
 
 </html>

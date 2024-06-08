@@ -1,0 +1,20 @@
+{
+    "default": [
+        "ignore",
+        "accept",
+        "return",
+        "create",
+        "useragent",
+        "picture",
+        "hardware",
+        "clockturn"
+    ],
+    "default2": [
+        "ignore",
+        "accept",
+        "return",
+        "create",
+        "useragent",
+        "picture"
+    ]
+}
