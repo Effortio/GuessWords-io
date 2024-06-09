@@ -56,11 +56,12 @@ WSServer.on("connection", (conn, req) => {
                     // 解散房间
                     delete rooms[conn.meta["room-id"]];
                 } else {
+                    let quitName = rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"];
                     delete rooms[conn.meta["room-id"]]["users"][conn.meta["id"]];
                     sendMessageToRoomClients({
                         "type": "quit-room",
                         "id": conn.meta["id"],
-                        "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                        "name": quitName
                     });
                 }
                 conn.meta["room-id"] = null;
@@ -362,6 +363,7 @@ WSServer.on("connection", (conn, req) => {
                     }
                     sendMessageToRoomClients({
                         "type": "switch-game-status",
+                        "detail": rooms[conn.meta["room-id"]]["status"],
                         "id": conn.meta["id"],
                         "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
                     });
@@ -412,6 +414,7 @@ WSServer.on("connection", (conn, req) => {
                 }
                 sendMessageToRoomClients({
                     "type": "switch-game-frozen",
+                    "detail": rooms[conn.meta["room-id"]]["frozen"],
                     "id": conn.meta["id"],
                     "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
                 });
@@ -559,7 +562,7 @@ WSServer.on("connection", (conn, req) => {
                         getClientInstance(data["refer-id"]).meta["room-id"] = null;
                         sendData({
                             "type": "room-quit",
-                            "detail": "banned"
+                            "detail": data["method"]
                         }, getClientInstance(data["refer-id"]));
                         delete rooms[conn.meta["room-id"]]["users"][data["refer-id"]];
                         break;

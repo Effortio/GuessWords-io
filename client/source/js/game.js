@@ -140,17 +140,18 @@ function setupConnection() {
                         viewerSwitch("room-passive-quiting");
                         showMessage("房主已关闭房间或失去连接", "error");
                         break;
-                    case "banned":
+                    case "kick":
                         viewerSwitch("room-kicked-quiting");
                         showMessage("你已被踢出房间", "error");
                         break;
-                    default:
+                    case "kick-and-ban":
+                        viewerSwitch("room-kicked-and-banned-quiting");
+                        showMessage("你已被踢出并禁止再次加入房间", "error");
                         break;
                 }
                 break;
             case "message-received":
                 pushInfo(data.content);
-                showMessage(data.content.toString(), "info")
                 break;
             default:
                 showMessage("无法解析的请求" + data.toString(), "error");
@@ -174,8 +175,8 @@ function viewerSwitch(method) {
             break;
         case "room-active-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-message").style.display = "block";
-                for (const iterator of document.getElementById("room-quit-message").children) {
+                document.getElementById("room-quit-label").parentElement.style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-active-quiting-label"), "in");
@@ -183,8 +184,8 @@ function viewerSwitch(method) {
             break;
         case "room-passive-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-message").style.display = "block";
-                for (const iterator of document.getElementById("room-quit-message").children) {
+                document.getElementById("room-quit-label").parentElement.style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-passive-quiting-label"), "in");
@@ -192,11 +193,20 @@ function viewerSwitch(method) {
             break;
         case "room-kicked-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-message").style.display = "block";
-                for (const iterator of document.getElementById("room-quit-message").children) {
+                document.getElementById("room-quit-label").parentElement.style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-kicked-quiting-label"), "in");
+            });
+            break;
+        case "room-kicked-and-banned-quiting":
+            fade(document.getElementById("room-playing"), "out", () => {
+                document.getElementById("room-quit-label").parentElement.style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children) {
+                    iterator.style.display = "none";
+                }
+                fade(document.getElementById("room-kicked-and-banned-quiting-label"), "in");
             });
             break;
         default:

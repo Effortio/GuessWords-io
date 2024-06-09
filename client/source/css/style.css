@@ -10,7 +10,7 @@ body {
     --button-active-color: #ce134e;
     --input-border-bg: rgb(216, 156, 67);
     --div-hover-bg: rgba(250, 194, 109, 0.3);
-    --red-bg: rgb(253, 104, 104);
+    --red-bg: rgb(252, 129, 129);
     --green-bg: rgb(126, 255, 126);
     --cyan-fg: rgb(0, 37, 250);
     --card-border: rgb(170, 102, 0);
@@ -259,6 +259,31 @@ summary:active {
     width: 40px;
 }
 
+
+.yellow-bg {
+    background-color: yellow;
+}
+
+.red-bg {
+    background-color: var(--red-bg);
+}
+
+.green-bg {
+    background-color: var(--green-bg);
+}
+
+.green-fg {
+    background-color: green;
+}
+
+.red-fg {
+    color: red;
+}
+
+.cyan-fg {
+    color: var(--cyan-fg);
+}
+
 .seperating-label::before {
     content: "✦";
     color: var(--cyan-fg);
@@ -343,12 +368,12 @@ summary:active {
     margin: 10px;
 }
 
-.stats-chart td:first-child {
+#stats-container table td:first-child {
     padding: 2px;
     text-align: right;
 }
 
-.stats-chart td:last-child {
+#stats-container table td:last-child {
     text-align: left;
     font-weight: bold;
 }
@@ -465,18 +490,26 @@ summary:active {
     border: var(--background-card-bg) 2px solid;
 }
 
-.yellow-bg {
-    background-color: yellow;
+#selecting-rooms details table,
+#room-inner-settings table {
+    margin: auto;
 }
 
-
-.red-bg {
-    background-color: var(--red-bg);
+#selecting-rooms details table input,
+#selecting-rooms details table select,
+#room-inner-settings table select,
+#room-inner-settings table input {
+    width: 160px;
+    text-align: center;
 }
 
+#selecting-rooms details table td:first-child #room-inner-settings table td:first-child {
+    text-align: right;
+}
 
-.green-bg {
-    background-color: var(--green-bg);
+#selecting-rooms details table td:last-child,
+#room-inner-settings table td:last-child {
+    font-size: small;
 }
 
 #user-list {
@@ -503,9 +536,6 @@ summary:active {
 }
 
 
-.cyan-fg {
-    color: var(--cyan-fg);
-}
 
 .score-label {
     margin: 3px;
@@ -560,10 +590,6 @@ summary:active {
 }
 
 
-.red-fg {
-    color: red;
-}
-
 #guessing-input-area {
     position: relative;
 }
@@ -584,6 +610,7 @@ summary:active {
     justify-content: space-between;
     margin: 8px;
     display: flex;
+    gap: 5px;
 }
 
 .guessing-area>div,
@@ -669,11 +696,9 @@ summary:active {
 }
 
 #live-message-box {
-    width: fit-content;
-    min-width: 150px;
     margin: auto;
-    border-bottom: 2px solid var(--medium-dark-bg);
-    height: 200px;
+    border-bottom: 2px solid var(--background-card-bg);
+    height: 250px;
     border-radius: 5px;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -688,7 +713,7 @@ summary:active {
     border-radius: inherit;
 }
 
-#live-message-box>div>.hightlight-information {
+#live-message-box>div>.highlight-text {
     background-color: var(--medium-bg);
     border-radius: inherit;
     padding: inherit;

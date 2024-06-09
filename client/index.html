@@ -27,7 +27,7 @@
                             <!-- <span>?</span> -->
                         </div>
                         <div id="stats-container">
-                            <table class="stats-chart">
+                            <table>
                                 <tr>
                                     <td>我的用户ID</td>
                                     <td class="user-id-label">-</td>
@@ -37,7 +37,7 @@
                                     <td id="user-ip-label">-</td>
                                 </tr>
                             </table>
-                            <table class="stats-chart">
+                            <table>
                                 <tr>
                                     <td>目前在线人数</td>
                                     <td class="current-online-label">-</td>
@@ -172,8 +172,8 @@
                     <header>选择房间</header>
                     <p>
                         你的名称
-                        <input type="text" maxlength="10" placeholder="长度不超过10" class="long-input" value="新玩家"
-                            id="username-input" />
+                        <input type="text" maxlength="10" placeholder="长度不超过10" value="新玩家" id="username-input"
+                            class="long-input" />
                         ID
                         <b class="user-id-label"></b>
                     </p>
@@ -183,33 +183,41 @@
                     </div>
                     <details>
                         <summary>创建房间设置</summary>
-                        <div>
-                            房间名 <input type="text" maxlength="10" class="long-input" id="new-room-name-input"
-                                placeholder="新房间" />
-                            <small>最长10字符</small>
-                        </div>
-                        <div>
-                            房间人数上限 <input type="number" min="3" max="20" placeholder="默认最大" id="max-users-input" />
-                            <small><span class="room-max-users-min-label"></span>~<span
-                                    class="room-max-users-max-label"></span></small>
-                        </div>
-                        <div>
-                            词库
-                            <select class="words-database-list">
-                            </select>
-                        </div>
-                        <div>
-                            猜测单词数量 <input type="number" min="3" max="10" id="guess-words-input" placeholder="默认最大" />
-                            <small><span class="guess-words-number-min-label"></span>~<span
-                                    class="guess-words-number-max-label"></span></small>
-                        </div>
-                        <div>
-                            <small>*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</small>
-                        </div>
-                        <div>
-                            房间密码 <input maxlength="10" id="room-password-input" placeholder="留空以禁用密码"
-                                class="long-input" />
-                        </div>
+                        <table>
+                            <tr>
+                                <td>房间名</td>
+                                <td><input type="text" maxlength="10" id="new-room-name-input" placeholder="新房间" /></td>
+                                <td>最长10字符</td>
+                            </tr>
+                            <tr>
+                                <td>房间人数上限</td>
+                                <td><input type="number" min="3" max="20" placeholder="默认最大" id="max-users-input" />
+                                </td>
+                                <td><span class="room-max-users-min-label"></span>~<span
+                                        class="room-max-users-max-label"></span></td>
+                            </tr>
+                            <tr>
+                                <td>词库</td>
+                                <td><select class="words-database-list">
+                                    </select></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>猜测单词数量</td>
+                                <td><input type="number" min="3" max="10" id="guess-words-input" placeholder="默认最大" />
+                                </td>
+                                <td><span class="guess-words-number-min-label"></span>~<span
+                                        class="guess-words-number-max-label"></span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</td>
+                            </tr>
+                            <tr>
+                                <td>房间密码</td>
+                                <td><input maxlength="10" id="room-password-input" placeholder="禁用密码" /></td>
+                                <td>留空以禁用密码</td>
+                            </tr>
+                        </table>
                     </details>
                     <div id="room-list">
                     </div>
@@ -218,7 +226,7 @@
                     <header><span id="room-owner-label"></span></header>
                     <div>
                         <small>
-                            ID <span id="room-id-label"></span>
+                            房间ID <span id="room-id-label"></span>
                             <span id="private-room-label">
                                 <span class="seperating-label"></span>🔒需要密码
                             </span>
@@ -237,52 +245,61 @@
                         <details id="room-inner-settings">
                             <summary>房间设置</summary>
                             <small>留空以取消更改对应设置</small>
-                            <p>
-                            <div>
-                                房间名 <input type="text" maxlength="10" placeholder="(不更改)" class="long-input"
-                                    id="new-room-name-inner-input" />
-                                <small>最长10字符</small>
-                            </div>
-                            <div>
-                                房间人数上限 <input type="number" max="20" placeholder="(不更改)" id="max-users-inner-input" />
-                                <small>房间当前人数~<span class="room-max-users-max-label"></span></small>
-                            </div>
-                            <hr />
-                            <div>
-                                词库 <select type="checkbox" id="room-words-database-name-modify-enable">
-                                    <option value="no-change" selected>不更改</option>
-                                    <option value="change">设置更改</option>
-                                    <option value="cancel-change">撤销更改</option>
-                                </select>
-                                <select class="words-database-list">
-                                </select>
-                            </div>
-                            <div>
-                                猜测单词数量 <input type="number" min="3" max="10" placeholder="(不更改)"
-                                    id="guess-words-inner-input" />
-                                <small><span class="guess-words-number-min-label"></span>~<span
-                                        class="guess-words-number-max-label"></span></small>
-                                <small class="red-fg">下一轮游戏时生效</small>
-                            </div>
-                            <div id="modified-words-database-label"><small>下个词库名称更改为<code
-                                        id="next-words-database-name-label"></code></small></div>
-                            <div>
-                                <small>*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</small>
-                            </div>
-                            <hr />
-                            <div>
-                                房间密码 <select type="checkbox" id="room-password-enabled">
-                                    <option value="no-change" selected>不更改</option>
-                                    <option value="change">更改</option>
-                                </select>
-                                <input maxlength="10" id="room-password-inner-input" placeholder="留空以禁用密码"
-                                    class="long-input" />
+                            <table>
+                                <tr>
+                                    <td>房间名</td>
+                                    <td><input type="text" maxlength="10" placeholder="(不更改)"
+                                            id="new-room-name-inner-input" /></td>
+                                    <td>最长10字符</td>
+                                </tr>
+                                <tr>
+                                    <td>房间人数上限</td>
+                                    <td><input type="number" max="20" placeholder="(不更改)" id="max-users-inner-input" />
+                                    </td>
+                                    <td>房间当前人数~<span class="room-max-users-max-label"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>词库</td>
+                                    <td><select type="checkbox" id="room-words-database-name-modify-enable">
+                                            <option value="no-change" selected>不更改</option>
+                                            <option value="change">设置更改</option>
+                                            <option value="cancel-change">撤销更改</option>
+                                        </select>
+                                        <select class="words-database-list">
+                                        </select>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>猜测单词数量</td>
+                                    <td><input type="number" min="3" max="10" placeholder="(不更改)"
+                                            id="guess-words-inner-input" /></td>
+                                    <td><span class="guess-words-number-min-label"></span>~<span
+                                            class="guess-words-number-max-label"></span>
+                                        <span class="red-fg">下一轮游戏时生效</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">*如猜测单词数量大于等于本词库词语个数，所有词语都将展示</td>
+                                </tr>
+                                <tr>
+                                    <td>房间密码</td>
+                                    <td><select type="checkbox" id="room-password-enabled">
+                                            <option value="no-change" selected>不更改</option>
+                                            <option value="change">更改</option>
+                                        </select>
+                                        <input maxlength="10" id="room-password-inner-input" placeholder="禁用密码"
+                                            class="long-input" />
+                                    </td>
+                                    <td>留空以禁用密码</td>
+                                </tr>
+                            </table>
+                            <div>下个词库名称更改为<code id="next-words-database-name-label"></code>
                             </div>
                             <div>
                                 当前密码 <code id="room-password"></code> <label><input id="show-or-hide-room-password"
                                         type="checkbox" />显示密码</label>
                             </div>
-                            </p>
                             <button id="apply-modify-room-button">应用更改</button>
                         </details>
                     </div>
@@ -361,8 +378,8 @@
                                 </div>
                                 <div class="white-area">
                                     <div class="guessing-area">
-                                        <div class="subtitle">单词列表</div>
                                         <div>
+                                            <div class="subtitle">单词列表</div>
                                             <div id="word-list">
 
                                             </div>
@@ -400,7 +417,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
                                         <div>
                                             <div class="subtitle">消息<button id="clear-message-button">清空</button>
@@ -411,29 +427,34 @@
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
                     </div>
 
                 </div>
-                <div id="room-quit-message">
-                    <div id="room-active-quiting-label" class="card">
-                        <header>房间已退出</header>
-                        <p>你已退出当前房间。可再次选择房间游玩。</p>
-                        <button class="return-selecting-button strong">返回</button>
+                <div id="room-quit-label">
+                    <div>
+                        <div id="room-active-quiting-label" class="card">
+                            <header>房间已退出</header>
+                            <p>你已退出当前房间。可再次选择房间游玩。</p>
+                            <button class="return-selecting-button strong">返回</button>
+                        </div>
+                        <div id="room-passive-quiting-label" class="card">
+                            <header>房间已被关闭</header>
+                            <p>当前房间已被房主解散/房主已断开连接。可再次选择房间游玩。</p>
+                            <button class="return-selecting-button strong">返回</button>
+                        </div>
+                        <div id="room-kicked-quiting-label" class="card">
+                            <header>你被踢出房间</header>
+                            <p>你已被踢出当前房间。</p>
+                        </div>
+                        <div id="room-kicked-and-banned-quiting-label" class="card">
+                            <header>你被踢出并禁止再次加入房间</header>
+                            <p>你已被踢出当前房间。依房间管理员或房主设定，你无法再次加入房间。</p>
+                        </div>
                     </div>
-                    <div id="room-passive-quiting-label" class="card">
-                        <header>房间已被关闭</header>
-                        <p>当前房间已被房主解散/房主已断开连接。可再次选择房间游玩。</p>
-                        <button class="return-selecting-button strong">返回</button>
-                    </div>
-                    <div id="room-kicked-quiting-label" class="card">
-                        <header>你被踢出房间</header>
-                        <p>你已被踢出当前房间。依房间管理员或房主设定，你可能无法再次加入房间。</p>
-                        <button class="return-selecting-button strong">返回</button>
-                    </div>
+                    <button class="return-selecting-button strong">返回</button>
                 </div>
             </div>
             <script src="source/js/renderer.js"></script>

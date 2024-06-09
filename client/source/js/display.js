@@ -82,7 +82,7 @@ function displayGameInfo(data) {
                     <b>${data.rooms[iterator]["name"]}</b><small>
                         人数 ${Object.keys(data.rooms[iterator].users).length} / ${data.rooms[iterator]["max-users"]}
                         <span class="seperating-label"></span>
-                        房主 ${hostName}</small>
+                        房主 ${hostName} 词库<code>${data.rooms[iterator]["words-database-name"].current}</code></small>
                         <button ${Object.keys(data.rooms[iterator].users).length > data.rooms[iterator]["max-users"] ? "disabled" : ""}>${data.rooms[iterator]["frozen"] ? "❄" : data.rooms[iterator]["password"] !== null ? "🔒" : Array.from(data.rooms[iterator]["banned-user-ips"]).indexOf(data["my-info"]["ip"]) != -1 ? "🚫" : ""
                     }加入</button>
                 `;
@@ -242,7 +242,7 @@ function displayGameInfo(data) {
             document.getElementById("show-or-hide-room-password").parentElement.parentElement.style.display = "none";
             document.getElementById("room-password").removeAttribute("password");
         } else {
-            document.getElementById("show-or-hide-room-password").parentElement.parentElement.style.display = "unset";
+            document.getElementById("show-or-hide-room-password").parentElement.parentElement.style.display = "block";
             document.getElementById("room-password").setAttribute("password", roomInfo["password"]);
             if (document.getElementById("show-or-hide-room-password").checked) {
                 document.getElementById("room-password").innerText = document.getElementById("room-password").getAttribute("password");
@@ -315,7 +315,7 @@ function displayGameInfo(data) {
         document.getElementById("total-progress-of-this-turn").innerText = Math.ceil(guessedoutchars / allguesschars * 100);
         document.getElementById("guess-order-label").max = roomInfo["words"].length;
         document.getElementById("current-words-database-name-label").innerText = roomInfo["words-database-name"]["current"];
-        document.getElementById("modified-words-database-label").style.display = roomInfo["words-database-name"]["next"] === null ? "none" : "initial";
+        document.getElementById("next-words-database-name-label").parentElement.style.display = roomInfo["words-database-name"]["next"] === null ? "none" : "initial";
         document.getElementById("next-words-database-name-label").innerText = roomInfo["words-database-name"]["next"] === null ? "(无更改)" : roomInfo["words-database-name"]["next"];
         document.getElementById("left-open-letter-chances-label").innerText = roomInfo["users"][data["my-info"]["id"]]["left-open-letter-chances"];
         document.getElementById("max-open-letter-chances-label").innerText = roomInfo["words"].length;
@@ -378,67 +378,73 @@ function displayGameInfo(data) {
 
 function pushInfo(content) {
     let dumpInfo = "";
+    const obj = document.createElement("div");
+    const userTemplate = `<span class='highlight-text'><small>ID ${content["id"]}</small> ${content["name"]}</span>`;
     switch (content.type) {
         case "quit-room":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>退出了该房间`;
+            dumpInfo += `退出了该房间`;
             break;
         case "game-end":
             dumpInfo += `本轮游戏已结束`;
             break;
         case "join-room":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>加入了该房间`;
+            dumpInfo += `${userTemplate}加入了该房间`;
             break;
         case "modify-room":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>更改了该房间的设置`;
+            dumpInfo += `${userTemplate}更改了该房间的设置`;
             break;
         case "switch-game-status":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>切换了该房间的游戏状态`;
+            dumpInfo += `${userTemplate}${content.detail ? "暂停" : "继续"}了该房间的游戏`;
             break;
         case "open-letter":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>开启了字母<span class='hightlight-information'>${content["letter"]}</span>`;
+            dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"]}</span>`;
             break;
         case "switch-game-frozen":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>切换了该房间的冻结状态`;
+            dumpInfo += `${userTemplate}${content.detail ? "解冻" : "冻结"}了该房间`;
             break;
         case "guess-word":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>`;
+            dumpInfo += `${userTemplate}`;
             switch (content.detail) {
                 case "success":
-                    dumpInfo += `成功猜出了第<span class='hightlight-information'>${content["guess-id"]}</span>个单词！`;
+                    obj.classList.add("green-bg");
+                    dumpInfo += `成功猜出了第<span class='highlight-text'>${content["guess-id"]}</span>个单词！`;
                     break;
                 case "fail":
-                    dumpInfo += `未能猜出第<span class='hightlight-information'>${content["guess-id"]}</span>个单词`;
+                    obj.classList.add("red-fg");
+                    dumpInfo += `未能猜出第<span class='highlight-text'>${content["guess-id"]}</span>个单词`;
                     break;
                 case "no-influence":
-                    dumpInfo += `在干什么？第<span class='hightlight-information'>${content["guess-id"]}</span>个单词已经被猜出了！`;
+                    obj.classList.add("red-fg");
+                    dumpInfo += `在干什么？第<span class='highlight-text'>${content["guess-id"]}</span>个单词已经被猜出了！`;
                     break;
                 default:
                     break;
             }
             break;
         case "restart-game":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>重新开始了新的一局`;
+            dumpInfo += `${userTemplate}重新开始了新的一局`;
             break;
         case "skip-turn":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>跳过了这一局`;
+            dumpInfo += `${userTemplate}跳过了这一局`;
             break;
         case "operate-user":
-            dumpInfo += `<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>`;
+            dumpInfo += `${userTemplate}`;
+            const operatedUserTemplate = `<span class='highlight-text'><small>ID ${content["operated-id"]}</small> ${content["operated-name"]}</span>`
             switch (content.detail) {
                 case "set-owner":
-                    dumpInfo += `将房主转让给了<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>`;
+                    dumpInfo += `将房主转让给了${operatedUserTemplate}`;
                     break;
                 case "set-op":
-                    dumpInfo += `授予<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>管理员权限`;
+                    dumpInfo += `授予${operatedUserTemplate}管理员权限`;
                     break;
                 case "deset-op":
-                    dumpInfo += `移除<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>管理员权限`;
+                    dumpInfo += `移除${operatedUserTemplate}管理员权限`;
                     break;
                 case "kick":
-                    dumpInfo += `踢出<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>`;
+                    dumpInfo += `踢出${operatedUserTemplate}`;
                     break;
                 case "kick-and-ban":
-                    dumpInfo += `踢出并封禁<span class='hightlight-information'>ID ${content["id"]} ${content["name"]}</span>`;
+                    dumpInfo += `踢出并封禁${operatedUserTemplate}`;
                     break;
                 default:
                     break;
@@ -448,7 +454,6 @@ function pushInfo(content) {
             break;
     }
 
-    const obj = document.createElement("div");
     obj.innerHTML = `
     ${dumpInfo} <small class='message-time'>${content["time"]}</small>
     `;
