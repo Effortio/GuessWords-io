@@ -44,9 +44,10 @@ function connectShow(status = "success") {
         }, 1100);
     } else {
         if (status == "fail-at-start") {
-            document.getElementsByClassName("error-icon")[0].innerHTML = iconSvgs["error-svg"];
-        } else if (status == "fail-during-game") {
+            console.log(document.getElementsByClassName("error-icon")[0]);
             document.getElementsByClassName("error-icon")[1].innerHTML = iconSvgs["error-svg"];
+        } else if (status == "fail-during-game") {
+            document.getElementsByClassName("error-icon")[0].innerHTML = iconSvgs["error-svg"];
         }
         closeDialog();
         onConnected = false;

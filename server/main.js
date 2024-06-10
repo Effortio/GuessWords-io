@@ -1,7 +1,84 @@
+console.info("服务器启动中……");
+
 const ws = require("ws");
 const fs = require('fs');
 const os = require("os");
-const configFolderPath = "server/";//配置文件所处的文件夹
+const serverAddr = [1145, "/openletter"];
+const config = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf-8"));
+const wordsDatabase = JSON.parse(fs.readFileSync(__dirname + "/database.json", "utf-8"));
+
+{
+    console.info("正在检查配置文件……");
+    let passed = true;
+    // 检测配置文件
+    function logError(dump) {
+        console.error("[ERR]\t" + dump);
+        passed = false;
+    }
+
+    if (!("max-rooms" in config))
+        logError("max-rooms不存在！")
+    else if (isNaN(config["max-rooms"]) || config["max-rooms"] < 1)
+        logErrorerror("max-rooms不能少于1！");
+
+    if (!("max-users" in config)) {
+        logError("max-users不存在！");
+    } else {
+        let flag = true;
+        if (!("min" in config["max-users"])) {
+            logError("max-users.min选项不存在！");
+            flag = false;
+        } else if (isNaN(config["max-users"].min) || config["max-users"].min < 1) {
+            logError("max-users.min不能少于1！");
+            flag = false;
+        }
+        if (!("max" in config["max-users"])) {
+            logError("max-users.max选项不存在！");
+            flag = false;
+        } else if (isNaN(config["max-users"].max) || config["max-users"].max < 1) {
+            logError("max-users.max不能少于1！");
+            flag = false;
+        }
+        if (flag && config["max-users"].max <= config["max-users"].mim) {
+            logError("max-users.max必须大于max-users.min！");
+        }
+    }
+
+    if (!("guess-words" in config)) {
+        logError("max-users不存在！");
+    } else {
+        let flag = true;
+        if (!("min" in config["guess-words"])) {
+            logError("guess-words.min选项不存在！");
+            flag = false;
+        } else if (isNaN(config["guess-words"].min) || config["guess-words"].min < 1) {
+            logError("guess-words.min不能少于1！");
+            flag = false;
+        }
+        if (!("max" in config["guess-words"])) {
+            logError("guess-words.max选项不存在！");
+            flag = false;
+        } else if (isNaN(config["guess-words"].max) || config["guess-words"].max < 1) {
+            logError("guess-words.max不能少于1！");
+            flag = false;
+        }
+        if (flag && config["guess-words"].max <= config["guess-words"].mim) {
+            logError("guess-words.max必须大于max-users.min！");
+        }
+    }
+    if (!passed) {
+        console.info("服务器已取消启动。请检查config.json后重启。");
+        process.exit(2);
+    }
+}
+
+const WSServer = new ws.Server({
+    "port": serverAddr[0],
+    "path": serverAddr[1]
+});
+WSServer.on("listening", () => {
+    console.log(`服务端已开启\n地址ws://<Host>:${serverAddr.join("")}`);
+});
 
 let rooms = {};
 let stats = {
@@ -12,15 +89,6 @@ let stats = {
     "server-started-time": Date.now(),
     "total-played-time": 0
 }
-
-const serverAddr = [1145, "/openletter"];
-const WSServer = new ws.Server({
-    "port": serverAddr[0],
-    "path": serverAddr[1]
-});
-WSServer.on("listening", () => {
-    console.log(`服务端已开启\n地址ws://<Host>:${serverAddr.join("")}`);
-});
 WSServer.on("connection", (conn, req) => {
     function sendData(json, sendToClient) {
         if (sendToClient !== undefined) {
@@ -598,6 +666,3 @@ WSServer.on("connection", (conn, req) => {
     });
 
 });
-
-const config = JSON.parse(fs.readFileSync(configFolderPath + "config.json", "utf-8"));
-const wordsDatabase = JSON.parse(fs.readFileSync(configFolderPath + "database.json", "utf-8"));

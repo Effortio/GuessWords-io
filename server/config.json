@@ -1,5 +1,5 @@
 {
-    "max-rooms": 5,
+    "max-rooms": 0,
     "max-users": {
         "min": 3,
         "max": 15
@@ -7,6 +7,5 @@
     "guess-words": {
         "max": 15,
         "min": 3
-    },
-    "message-max-storage": 5
+    }
 }
