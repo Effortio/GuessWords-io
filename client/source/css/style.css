@@ -481,7 +481,7 @@ summary:active {
 
 
 #game-status {
-    margin: 5px;
+    margin: auto;
     width: fit-content;
     border-radius: 5px;
     padding: 5px;
@@ -496,14 +496,19 @@ summary:active {
 }
 
 #selecting-rooms details table input,
-#selecting-rooms details table select,
-#room-inner-settings table select,
 #room-inner-settings table input {
     width: 160px;
     text-align: center;
 }
 
-#selecting-rooms details table td:first-child #room-inner-settings table td:first-child {
+#selecting-rooms details table select,
+#room-inner-settings table select {
+    width: fit-content;
+    text-align: center;
+}
+
+#selecting-rooms details table td:first-child,
+#room-inner-settings table td:first-child {
     text-align: right;
 }
 
@@ -644,12 +649,6 @@ summary:active {
     border-radius: 2px;
     padding-left: 4px;
     padding-right: 4px;
-}
-
-.reward-score-label {
-    background-color: var(--medium-dark-bg);
-    padding: 2px;
-    border-radius: 2px;
 }
 
 #left-open-letter-chances-label {

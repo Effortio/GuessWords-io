@@ -203,7 +203,7 @@ function displayGameInfo(data) {
             obj.innerHTML = `
                 <small> ${index++}.</small> ${dump}
             <small>${leftchars > 0 ? (iterator.length - leftchars) + "/" + iterator.length : "已猜出"}
-                ${leftchars == 0 ? "" : "<span class='seperating-label'></span>分值<span class='reward-score-label'>" + (leftchars * 10).toString() + "</span>"}</small>`;
+                ${leftchars == 0 ? "" : "<span class='seperating-label'></span>分值<span class='highlight-text'>" + (leftchars * 10).toString() + "</span>"}</small>`;
             document.getElementById("word-list").appendChild(obj);
             if (guessed) {
                 guessedoutwords++;
@@ -217,7 +217,7 @@ function displayGameInfo(data) {
             for (const iterator of roomInfo["opened-letters"]) {
                 console.log(typeof iterator);
                 const char = document.createElement("div");
-                char.innerText = iterator == "" ? "<空格>" : iterator;
+                char.innerText = iterator == " " ? "空格" : iterator;
                 document.getElementById("opened-letters-list").appendChild(char)
             }
         }
@@ -397,7 +397,7 @@ function pushInfo(content) {
             dumpInfo += `${userTemplate}${content.detail ? "暂停" : "继续"}了该房间的游戏`;
             break;
         case "open-letter":
-            dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"]}</span>`;
+            dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"] == " " ? "空格" : content["letter"]}</span>`;
             break;
         case "switch-game-frozen":
             dumpInfo += `${userTemplate}${content.detail ? "解冻" : "冻结"}了该房间`;

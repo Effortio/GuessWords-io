@@ -1,5 +1,5 @@
 {
-    "max-rooms": 0,
+    "max-rooms": 5,
     "max-users": {
         "min": 3,
         "max": 15
@@ -7,5 +7,6 @@
     "guess-words": {
         "max": 15,
         "min": 3
-    }
+    },
+    "dev-run": true
 }

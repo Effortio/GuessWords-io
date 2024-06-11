@@ -19,7 +19,7 @@ const wordsDatabase = JSON.parse(fs.readFileSync(__dirname + "/database.json", "
     if (!("max-rooms" in config))
         logError("max-rooms不存在！")
     else if (isNaN(config["max-rooms"]) || config["max-rooms"] < 1)
-        logErrorerror("max-rooms不能少于1！");
+        logError("max-rooms不能少于1！");
 
     if (!("max-users" in config)) {
         logError("max-users不存在！");
@@ -76,8 +76,12 @@ const WSServer = new ws.Server({
     "port": serverAddr[0],
     "path": serverAddr[1]
 });
+
 WSServer.on("listening", () => {
-    console.log(`服务端已开启\n地址ws://<Host>:${serverAddr.join("")}`);
+    // console.clear();
+    console.info(`——服务端已开启[${(new Date).toString()}]——\n访问地址ws://<Host>:${serverAddr.join("")}\n`);
+    console.log("<*运行时日志*>");
+    console.log(`[TIP]\t'dev-run'已${config["dev-run"] ? "开启" : "关闭"}，可在config.json里添加或更改，重启后生效`);
 });
 
 let rooms = {};
@@ -108,9 +112,16 @@ WSServer.on("connection", (conn, req) => {
         return thisClient;
     }
 
+    function advanceLog(text, header = 'LOG') {
+        if (config["dev-run"]) {
+            console.info(`[${header}]\t${text}`);
+        }
+    }
+
     function closeRoom() {
         if (conn.meta["room-id"] !== null) {
-            if (conn.meta["room-id"] in rooms) {
+            if (conn.meta["room-id"] in rooms && conn.meta["id"] in rooms[conn.meta["room-id"]]["users"]) {
+                let quitName = rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"];
                 if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["level"] == 0) {
                     for (const index in rooms[conn.meta["room-id"]]["users"]) {
                         if (index != conn.meta["id"]) {
@@ -122,18 +133,20 @@ WSServer.on("connection", (conn, req) => {
                         }
                     }
                     // 解散房间
+                    advanceLog(`ID为${conn.meta["id"]}的玩家${quitName}解散了房间ID${conn.meta["room-id"]}`, 'QUIT');
                     delete rooms[conn.meta["room-id"]];
                 } else {
-                    let quitName = rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"];
                     delete rooms[conn.meta["room-id"]]["users"][conn.meta["id"]];
                     sendMessageToRoomClients({
                         "type": "quit-room",
                         "id": conn.meta["id"],
                         "name": quitName
                     });
+                    advanceLog(`ID为${conn.meta["id"]}的玩家${quitName}退出了房间${conn.meta["room-id"]}`, 'QUIT');
                 }
                 conn.meta["room-id"] = null;
                 stats["playing-users"]--;
+                advanceLog(`目前正在游玩的玩家数：${stats["playing-users"]}`);
             }
         }
     }
@@ -174,6 +187,7 @@ WSServer.on("connection", (conn, req) => {
         if (WSServer.clients.size > stats["max-users"]) {
             stats["max-users"] = WSServer.clients.size;
         }
+        advanceLog(`新客户端接入，ID为${conn.meta["id"]}，目前在线人数：${WSServer.clients.size}`, 'JOIN');
     }
 
     // 接收客户端返回的数据
@@ -215,6 +229,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "game-end"
                 });
             }
+            advanceLog(`房间ID为${conn.meta["room-id"]}的一轮游戏已结束，目前游玩局数${rooms[conn.meta["room-id"]]["turns"]}`, 'END');
             return end;
         }
         function randomSelectWords(thisroom) {
@@ -262,6 +277,7 @@ WSServer.on("connection", (conn, req) => {
                     rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["connection-delay"] = data["last-connection-delay"];
                 }
                 sendData({ "type": "ping-back" });
+                // advanceLog(`收到来自ID为${conn.meta["id"]}的ping请求`);
                 break;
             case "require-data":
                 // syncClientData();
@@ -304,6 +320,7 @@ WSServer.on("connection", (conn, req) => {
                         "type": "success-request",
                         "detail": "create-room"
                     });
+                    advanceLog(`ID为${conn.meta["id"]}的用户创建了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]], undefined, 4)}`, 'CREATE');
                 }
                 break;
             case "join-room":
@@ -350,6 +367,7 @@ WSServer.on("connection", (conn, req) => {
                         "type": "success-request",
                         "detail": "join-room",
                     });
+                    advanceLog(`ID为${conn.meta["id"]}的用户加入了房间ID${conn.meta["room-id"]}`, 'JOIN');
                 }
                 break;
             case "quit-room":
@@ -415,6 +433,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "modify-room"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户更改了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]], undefined, 4)}`, 'MODIFY');
                 break;
             case "switch-game-status":
                 if (!accessCheck()) return;
@@ -439,6 +458,7 @@ WSServer.on("connection", (conn, req) => {
                         "type": "success-request",
                         "detail": "switch-room-status"
                     });
+                    advanceLog(`ID为${conn.meta["id"]}的用户切换了房间ID${conn.meta["room-id"]}的游戏状态至${rooms[conn.meta["room-id"]]["status"]}`, 'MODIFY');
                 }
                 break;
             case "open-letter":
@@ -471,6 +491,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "open-letter"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了字母${data.letter}`, 'GUESS');
                 checkGameEnd();
                 break;
             case "switch-game-frozen":
@@ -490,6 +511,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "switch-room-frozen"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户切换了房间ID${conn.meta["room-id"]}的冻结状态至${rooms[conn.meta["room-id"]]["frozen"]}`, 'SWITCH');
                 break;
             case "guess-word":
                 if (!statusCheck([0])) return;
@@ -560,6 +582,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "guess-word"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了第${data.order}单词是${data.guess}`, 'GUESS');
                 break;
             case "skip-turn":
                 if (!accessCheck()) return;
@@ -574,6 +597,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "skip-turn"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户跳过了房间ID${conn.meta["room-id"]}的一次游玩`, 'SKIP');
                 break;
             case "restart-game":
                 if (!accessCheck()) return;
@@ -600,6 +624,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "restart-game"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户重新开始了房间ID${conn.meta["room-id"]}的一次游玩`, 'RESTART');
                 break;
             case "operate-user":
                 if (!(data["refer-id"] in rooms[conn.meta["room-id"]]["users"])) {
@@ -649,6 +674,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "operate-user"
                 });
+                advanceLog(`ID为${conn.meta["id"]}的用户对为ID${conn.meta["room-id"]}的用户执行了操作${data["method"]}`, 'OPERATE');
                 break;
             default:
                 console.log("无法解析的请求", data);
@@ -662,7 +688,7 @@ WSServer.on("connection", (conn, req) => {
     conn.on("close", function (e) {
         closeRoom();
         stats["total-played-time"] += Date.now() - conn.meta["join-time"];
-        console.log("断开连接 ID", conn.meta["id"]);
+        advanceLog("断开连接 ID", conn.meta["id"], 'LEAVE');
     });
 
 });
