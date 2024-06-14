@@ -79,8 +79,8 @@ const WSServer = new ws.Server({
 
 WSServer.on("listening", () => {
     // console.clear();
-    console.info(`——服务端已开启[${(new Date).toString()}]——\n访问地址ws://<Host>:${serverAddr.join("")}\n`);
-    console.log("<*运行时日志*>");
+    console.info(`——服务端已开启[${(new Date).toString()}]——\n访问地址ws://<Host>:${serverAddr.join("")}`);
+    console.log("[日志]");
     console.log(`[TIP]\t'dev-run'已${config["dev-run"] ? "开启" : "关闭"}，可在config.json里添加或更改，重启后生效`);
 });
 
@@ -688,7 +688,7 @@ WSServer.on("connection", (conn, req) => {
     conn.on("close", function (e) {
         closeRoom();
         stats["total-played-time"] += Date.now() - conn.meta["join-time"];
-        advanceLog("断开连接 ID", conn.meta["id"], 'LEAVE');
+        advanceLog("断开连接 ID:" + conn.meta["id"], 'LEAVE');
     });
 
 });

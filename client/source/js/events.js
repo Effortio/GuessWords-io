@@ -193,7 +193,38 @@ for (const each of document.getElementById("switch-stat-page-controller").childr
     });
 }
 
-document.getElementById("username-input").value = "玩家" + Math.floor(Math.random() * 8999 + 1000).toString();
+const docCookies = {
+    set: (name, value, daysToLive) => {
+        var cookie = name + "=" + encodeURIComponent(value);
+        if (typeof daysToLive === "number") {
+            cookie += "; max-age=" + (daysToLive * 24 * 60 * 60);
+        }
+        document.cookie = cookie;
+    },
+    get: (name) => {
+        var cookieArr = document.cookie.split(";");
+        for (var i = 0; i < cookieArr.length; i++) {
+            var cookiePair = cookieArr[i].split("=");
+            if (name == cookiePair[0].trim()) {
+                // 解码cookie值并返回
+                return decodeURIComponent(cookiePair[1]);
+            }
+        }
+        return null;
+    }
+}
+
+
+if (docCookies.get("prefer-name")) {
+    document.getElementById("username-input").value = docCookies.get("prefer-name");
+} else {
+    showMessage("你可以修改你的昵称，将自动保存至cookie！", "info");
+    document.getElementById("username-input").value = "玩家" + Math.floor(Math.random() * 8999 + 1000).toString();
+}
+document.getElementById("username-input").onchange = document.getElementById("username-input").onkeyup = () => {
+    if (document.getElementById("username-input").value)
+        docCookies.set("prefer-name", document.getElementById("username-input").value, 30);
+})
 
 document.getElementById("clear-message-button").addEventListener("click", () => {
     document.getElementById("live-message-box").innerHTML = "";

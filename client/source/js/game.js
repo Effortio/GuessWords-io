@@ -217,4 +217,5 @@ function viewerSwitch(method) {
 let onConnected = false;
 const serverAddr = "localhost:1145/openletter";
 
+
 setupConnection();
