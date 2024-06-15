@@ -122,8 +122,12 @@ function setupConnection() {
                     case "no-open-letters-chance":
                         showMessage("开字母失败，你没有机会了！", "error")
                         break;
-                    case "guess-length-incorrect":
-                        showMessage("猜测失败，长度不对哦！", "error")
+                    case "guess-word":
+                        showMessage(`猜测失败，${data.reason == "guess-length-incorrect" ? "长度不对哦" : data.reason == "order-incorrect" ? "序号无效" : data.reason == "no-influence" ? "已经猜出了" : data.reason}！`, "error");
+                        break;
+                    case "not-in-room":
+                        showMessage("当前不在房间！", "error");
+                        break;
                     default:
                         showMessage(`未知的错误：${data.detail}`, "error");
                         break;
@@ -161,7 +165,6 @@ function setupConnection() {
 }
 
 function viewerSwitch(method) {
-    closeDialog();
     switch (method) {
         case "playing":
             document.getElementById("clear-message-button").click();
@@ -175,8 +178,8 @@ function viewerSwitch(method) {
             break;
         case "room-active-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-label").parentElement.style.display = "block";
-                for (const iterator of document.getElementById("room-quit-label").children) {
+                document.getElementById("room-quit-label").style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children[0].children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-active-quiting-label"), "in");
@@ -184,8 +187,8 @@ function viewerSwitch(method) {
             break;
         case "room-passive-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-label").parentElement.style.display = "block";
-                for (const iterator of document.getElementById("room-quit-label").children) {
+                document.getElementById("room-quit-label").style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children[0].children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-passive-quiting-label"), "in");
@@ -193,8 +196,8 @@ function viewerSwitch(method) {
             break;
         case "room-kicked-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-label").parentElement.style.display = "block";
-                for (const iterator of document.getElementById("room-quit-label").children) {
+                document.getElementById("room-quit-label").style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children[0].children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-kicked-quiting-label"), "in");
@@ -202,8 +205,8 @@ function viewerSwitch(method) {
             break;
         case "room-kicked-and-banned-quiting":
             fade(document.getElementById("room-playing"), "out", () => {
-                document.getElementById("room-quit-label").parentElement.style.display = "block";
-                for (const iterator of document.getElementById("room-quit-label").children) {
+                document.getElementById("room-quit-label").style.display = "block";
+                for (const iterator of document.getElementById("room-quit-label").children[0].children) {
                     iterator.style.display = "none";
                 }
                 fade(document.getElementById("room-kicked-and-banned-quiting-label"), "in");
@@ -216,6 +219,5 @@ function viewerSwitch(method) {
 
 let onConnected = false;
 const serverAddr = "localhost:1145/openletter";
-
 
 setupConnection();

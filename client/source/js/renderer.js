@@ -10,7 +10,7 @@ const iconSvgs = {
             <path class="line" fill="none" d="M34.78,34.684L17.309,17.316" />\
         </svg>',
     "refresh-svg": '\
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"> \
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"> \
     <path fill="currentColor"\
         d="M3.68 11.333h-.75zm0 1.667l-.528.532a.75.75 0 0 0 1.056 0zm2.208-1.134A.75.75 0 1 0 4.83 10.8zM2.528 10.8a.75.75 0 0 0-1.056 1.065zm16.088-3.408a.75.75 0 1 0 1.277-.786zM12.079 2.25c-5.047 0-9.15 4.061-9.15 9.083h1.5c0-4.182 3.42-7.583 7.65-7.583zm-9.15 9.083V13h1.5v-1.667zm1.28 2.2l1.679-1.667L4.83 10.8l-1.68 1.667zm0-1.065L2.528 10.8l-1.057 1.065l1.68 1.666zm15.684-5.86A9.158 9.158 0 0 0 12.08 2.25v1.5a7.658 7.658 0 0 1 6.537 3.643zM20.314 11l.527-.533a.75.75 0 0 0-1.054 0zM18.1 12.133a.75.75 0 0 0 1.055 1.067zm3.373 1.067a.75.75 0 1 0 1.054-1.067zM5.318 16.606a.75.75 0 1 0-1.277.788zm6.565 5.144c5.062 0 9.18-4.058 9.18-9.083h-1.5c0 4.18-3.43 7.583-7.68 7.583zm9.18-9.083V11h-1.5v1.667zm-1.276-2.2L18.1 12.133l1.055 1.067l1.686-1.667zm0 1.066l1.686 1.667l1.054-1.067l-1.686-1.666zM4.04 17.393a9.197 9.197 0 0 0 7.842 4.357v-1.5a7.697 7.697 0 0 1-6.565-3.644z" />\
         </svg>',
@@ -44,15 +44,15 @@ function connectShow(status = "success") {
         }, 1100);
     } else {
         if (status == "fail-at-start") {
-            console.log(document.getElementsByClassName("error-icon")[0]);
-            document.getElementsByClassName("error-icon")[1].innerHTML = iconSvgs["error-svg"];
-        } else if (status == "fail-during-game") {
             document.getElementsByClassName("error-icon")[0].innerHTML = iconSvgs["error-svg"];
+            document.getElementById("fail-to-connect").style.display = "block";
+        } else if (status == "fail-during-game") {
+            document.getElementsByClassName("error-icon")[1].innerHTML = iconSvgs["error-svg"];
+            document.getElementById("fail-to-continue-connecting").style.display = "block";
         }
         closeDialog();
+        document.getElementById("close-popup-button").click();
         onConnected = false;
-        document.getElementById("fail-to-continue-connecting").style.display = "block";
-        document.getElementById("popup-shader").style.display = "none";
         document.getElementById("header-line").lastElementChild.innerHTML = "<i>连接已断开</i>";
     }
 }
@@ -172,7 +172,6 @@ function loadingShow(status) {
 
 function popupShow(method) {
     document.getElementById("popup-shader").style.display = "block";
-
     for (const iterator of document.getElementById("popup-shader").children) {
         iterator.style.display = "none";
     }
@@ -210,18 +209,18 @@ function dialogShow(type, message, trueReturn = null, falseReturn = null, detail
         default:
             break;
     }
-    for (const iterator of document.getElementById("popup-shader").children) {
+    for (const iterator of document.getElementById("dialog-shader").children) {
         iterator.style.display = "none";
     }
     document.getElementById("dialog-message").innerText = message;
     document.getElementById("dialog-border").style.display = "block";
-    document.getElementById("popup-shader").style.display = "block";
+    document.getElementById("dialog-shader").style.display = "block";
     document.getElementById("cancel-dialog-button").disabled = true;
     document.getElementById("confirm-dialog-button").disabled = true;
     let blur = 0;
     let main = setInterval(() => {
         document.getElementById("dialog-border").style.transform = "scale(" + Math.log2(blur) / 6 + ")"
-        document.getElementById("popup-shader").style.backdropFilter = "blur(" + Math.log2(blur) + "px)";
+        document.getElementById("dialog-shader").style.backdropFilter = "blur(" + Math.log2(blur) + "px)";
         blur += 3;
         if (blur > 64) {
             document.getElementById("cancel-dialog-button").disabled = false;
@@ -250,10 +249,10 @@ function closeDialog() {
     document.getElementById("confirm-dialog-button").disabled = true;
     let main = setInterval(() => {
         document.getElementById("dialog-border").style.transform = "scale(" + Math.log2(blur) / 6 + ")"
-        document.getElementById("popup-shader").style.backdropFilter = "blur(" + Math.log2(blur) + "px)";
+        document.getElementById("dialog-shader").style.backdropFilter = "blur(" + Math.log2(blur) + "px)";
         blur -= 3;
         if (blur < 0) {
-            document.getElementById("popup-shader").style.display = "none";
+            document.getElementById("dialog-shader").style.display = "none";
             document.getElementById("cancel-dialog-button").disabled = false;
             document.getElementById("confirm-dialog-button").disabled = false;
             clearInterval(main);
@@ -306,12 +305,14 @@ document.getElementById("connecting-to-server").style.display = "block";
 loadingShow(false);
 {
     document.getElementById("popup-shader").style.display = "none";
+    document.getElementById("dialog-shader").style.display = "none";
     document.getElementById("header-line").children[1].addEventListener("click", () => {
         if (onConnected) {
             popupShow("stats-show");
         }
     });
     document.getElementById("popup-border").style.transform = "scale(0)";
+    document.getElementById("dialog-border").style.transform = "scale(0)";
 }
 for (const iterator of document.getElementsByClassName("return-selecting-button")) {
     iterator.addEventListener("click", () => {

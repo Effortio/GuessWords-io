@@ -34,6 +34,10 @@ function displayGameInfo(data) {
         return `${Math.floor((seconds / 3600) % 60).toString().padStart(2, '0')}:${Math.floor((seconds / 60) % 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
     }
     function joinRoom(id, needps) {
+        if (!document.getElementById("username-input").value) {
+            showMessage("名称不能为空！", "error");
+            return;
+        }
         if (needps) {
             dialogShow("password", "该房间需要密码。请输入密码：", (password) => {
                 loadingShow();
@@ -82,7 +86,7 @@ function displayGameInfo(data) {
                     <b>${data.rooms[iterator]["name"]}</b><small>
                         人数 ${Object.keys(data.rooms[iterator].users).length} / ${data.rooms[iterator]["max-users"]}
                         <span class="seperating-label"></span>
-                        房主 ${hostName} 词库<code>${data.rooms[iterator]["words-database-name"].current}</code></small>
+                        房主 ${hostName}<span class='seperating-label'></span>词库<code>${data.rooms[iterator]["words-database-name"].current}</code></small>
                         <button ${Object.keys(data.rooms[iterator].users).length > data.rooms[iterator]["max-users"] ? "disabled" : ""}>${data.rooms[iterator]["frozen"] ? "❄" : data.rooms[iterator]["password"] !== null ? "🔒" : Array.from(data.rooms[iterator]["banned-user-ips"]).indexOf(data["my-info"]["ip"]) != -1 ? "🚫" : ""
                     }加入</button>
                 `;
@@ -410,11 +414,11 @@ function pushInfo(content) {
                     dumpInfo += `成功猜出了第<span class='highlight-text'>${content["guess-id"]}</span>个单词！`;
                     break;
                 case "fail":
-                    obj.classList.add("red-fg");
+                    obj.classList.add("red-bg");
                     dumpInfo += `未能猜出第<span class='highlight-text'>${content["guess-id"]}</span>个单词`;
                     break;
                 case "no-influence":
-                    obj.classList.add("red-fg");
+                    obj.classList.add("red-bg");
                     dumpInfo += `在干什么？第<span class='highlight-text'>${content["guess-id"]}</span>个单词已经被猜出了！`;
                     break;
                 default:

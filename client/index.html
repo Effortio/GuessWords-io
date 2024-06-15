@@ -16,96 +16,104 @@
                 <span class="strong">正在加载中</span>
             </div>
         </div>
-        <div id="popup-shader">
-            <div id="popup-border">
-                <div id="popup-content">
-                    <div data-type="stats-show">
-                        <header>信息</header>
-                        <div id="switch-stat-page-controller">
-                            <span>我的信息</span>
-                            <span>游戏统计</span>
-                            <!-- <span>?</span> -->
+        <div>
+            <div id="popup-shader">
+                <div id="popup-border">
+                    <div id="popup-content">
+                        <div data-type="stats-show">
+                            <header>信息</header>
+                            <div id="switch-stat-page-controller">
+                                <span>我的信息</span>
+                                <span>游戏统计</span>
+                                <!-- <span>?</span> -->
+                            </div>
+                            <div id="stats-container">
+                                <table>
+                                    <tr>
+                                        <td>我的用户ID</td>
+                                        <td class="user-id-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>我的IP</td>
+                                        <td id="user-ip-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>强制断开连接</td>
+                                        <td><button id="force-quit-game-label">执行</button></td>
+                                    </tr>
+                                </table>
+                                <table>
+                                    <tr>
+                                        <td>目前在线人数</td>
+                                        <td class="current-online-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>目前游玩人数</td>
+                                        <td id="current-playing-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>历史最高在线人数</td>
+                                        <td id="max-online-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>历史总计在线人数</td>
+                                        <td id="total-online-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>历史创建房间数</td>
+                                        <td id="total-rooms-label">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>我的游玩时间</td>
+                                        <td id="total-played-time-label"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>平均游玩时间</td>
+                                        <td id="average-played-time-label"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>服务器在线时间</td>
+                                        <td id="server-on-time-label"></td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
-                        <div id="stats-container">
-                            <table>
-                                <tr>
-                                    <td>我的用户ID</td>
-                                    <td class="user-id-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>我的IP</td>
-                                    <td id="user-ip-label">-</td>
-                                </tr>
-                            </table>
-                            <table>
-                                <tr>
-                                    <td>目前在线人数</td>
-                                    <td class="current-online-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>目前游玩人数</td>
-                                    <td id="current-playing-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>历史最高在线人数</td>
-                                    <td id="max-online-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>历史总计在线人数</td>
-                                    <td id="total-online-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>历史创建房间数</td>
-                                    <td id="total-rooms-label">-</td>
-                                </tr>
-                                <tr>
-                                    <td>我的游玩时间</td>
-                                    <td id="total-played-time-label"></td>
-                                </tr>
-                                <tr>
-                                    <td>平均游玩时间</td>
-                                    <td id="average-played-time-label"></td>
-                                </tr>
-                                <tr>
-                                    <td>服务器在线时间</td>
-                                    <td id="server-on-time-label"></td>
-                                </tr>
-                            </table>
+                        <div data-type="game-rules">
+                            <header>游戏规则</header>
+                            <div>
+                                <p>游戏为在线多人联机游戏。玩家需要进行团队合作，共同破译出单词的谜底。</p>
+                                <p>游戏开始时，将按照房间设置，从选择的词库中随机挑选指定个数的词，并放置在“猜测区域”中，接下来即可开始游戏。</p>
+                                <p>你可以选择开字母，也就是把这些单词中所有的与你输入的<b>单个字符</b>（包括空格等符号）所匹配的亮出来其所在位置。</p>
+                                <p>你的每一次开字母都将消耗一次<b>开字母机会</b>。初始机会和单词数量相等，每猜对一个词可回复一次机会。</p>
+                                <p>如果你有把握猜出这个单词，可以在“猜测”区域输入完整单词，如果匹配则可获得对应分数，越早猜对分数越多。</p>
+                                <p>如果所有单词全部猜出，本轮游戏结束。</p>
+                            </div>
+                        </div>
+                        <div data-type="game-about">
+                            <header>开字母</header>
+                            <p>NEW EDITION</p>
+                            <p>Made by Leoministry.</p>
                         </div>
                     </div>
-                    <div data-type="game-rules">
-                        <header>游戏规则</header>
-                        <div>
-                            <p>游戏为在线多人联机游戏。玩家需要进行团队合作，共同破译出单词的谜底。</p>
-                            <p>游戏开始时，将按照房间设置，从选择的词库中随机挑选指定个数的词，并放置在“猜测区域”中，接下来即可开始游戏。</p>
-                            <p>你可以选择开字母，也就是把这些单词中所有的与你输入的<b>单个字符</b>（包括空格等符号）所匹配的亮出来其所在位置。</p>
-                            <p>你的每一次开字母都将消耗一次<b>开字母机会</b>。初始机会和单词数量相等，每猜对一个词可回复一次机会。</p>
-                            <p>如果你有把握猜出这个单词，可以在“猜测”区域输入完整单词，如果匹配则可获得对应分数，越早猜对分数越多。</p>
-                            <p>如果所有单词全部猜出，本轮游戏结束。</p>
-                        </div>
-                    </div>
-                    <div data-type="game-about">
-                        <header>开字母</header>
-                        <p>NEW EDITION</p>
-                        <p>Made by Leoministry.</p>
-                    </div>
+                    <button id="close-popup-button" class="big">
+                        关闭
+                    </button>
                 </div>
-                <button id="close-popup-button" class="big">
-                    关闭
-                </button>
             </div>
-            <div id="dialog-border">
-                <p id="dialog-message" class="strong">确定要？</p>
-                <div><small id="dialog-detail-message"></small></div>
-                <div id="dialog-modules">
-                    <div>
-                        <input type="text" id="dialog-input" class="center" />
-                        <div id="dialog-input-error-info" class="red-fg"></div>
+            <div id="dialog-shader">
+                <div id="dialog-border">
+                    <p id="dialog-message" class="strong">确定要？</p>
+                    <div><small id="dialog-detail-message"></small></div>
+                    <div id="dialog-modules">
+                        <div>
+                            <input type="text" id="dialog-input" class="center" />
+                            <div id="dialog-input-error-info" class="red-fg"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="confirm-buttons">
-                    <button id="cancel-dialog-button">取消</button>
-                    <button id="confirm-dialog-button">确定</button>
+                    <div class="confirm-buttons">
+                        <button id="cancel-dialog-button">取消</button>
+                        <button id="confirm-dialog-button">确定</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -433,23 +441,21 @@
                     </div>
 
                 </div>
-                <div id="room-quit-label">
+                <div id="room-quit-label" class="card">
                     <div>
-                        <div id="room-active-quiting-label" class="card">
+                        <div id="room-active-quiting-label">
                             <header>房间已退出</header>
                             <p>你已退出当前房间。可再次选择房间游玩。</p>
-                            <button class="return-selecting-button strong">返回</button>
                         </div>
-                        <div id="room-passive-quiting-label" class="card">
+                        <div id="room-passive-quiting-label">
                             <header>房间已被关闭</header>
                             <p>当前房间已被房主解散/房主已断开连接。可再次选择房间游玩。</p>
-                            <button class="return-selecting-button strong">返回</button>
                         </div>
-                        <div id="room-kicked-quiting-label" class="card">
+                        <div id="room-kicked-quiting-label">
                             <header>你被踢出房间</header>
                             <p>你已被踢出当前房间。</p>
                         </div>
-                        <div id="room-kicked-and-banned-quiting-label" class="card">
+                        <div id="room-kicked-and-banned-quiting-label">
                             <header>你被踢出并禁止再次加入房间</header>
                             <p>你已被踢出当前房间。依房间管理员或房主设定，你无法再次加入房间。</p>
                         </div>

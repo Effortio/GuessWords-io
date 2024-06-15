@@ -214,6 +214,16 @@ WSServer.on("connection", (conn, req) => {
             }
             return true;
         }
+        function inRoom() {
+            if (conn.meta["room-id"] == null) {
+                sendData({
+                    "type": "fail-request",
+                    "detail": "not-in-room"
+                });
+                return false;
+            }
+            return true;
+        }
         function checkGameEnd() {
             let end = true;
             for (const iterator of rooms[conn.meta["room-id"]]["words"]) {
@@ -320,7 +330,7 @@ WSServer.on("connection", (conn, req) => {
                         "type": "success-request",
                         "detail": "create-room"
                     });
-                    advanceLog(`ID为${conn.meta["id"]}的用户创建了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]], undefined, 4)}`, 'CREATE');
+                    advanceLog(`ID为${conn.meta["id"]}的用户创建了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]])}`, 'CREATE');
                 }
                 break;
             case "join-room":
@@ -371,6 +381,7 @@ WSServer.on("connection", (conn, req) => {
                 }
                 break;
             case "quit-room":
+                if (!inRoom()) return;
                 closeRoom();
                 sendData({
                     "type": "room-quit",
@@ -378,6 +389,7 @@ WSServer.on("connection", (conn, req) => {
                 });
                 break;
             case "modify-room":
+                if (!inRoom()) return;
                 if (!accessCheck()) return;
                 function errorHandler() {
                     sendData({
@@ -436,6 +448,7 @@ WSServer.on("connection", (conn, req) => {
                 advanceLog(`ID为${conn.meta["id"]}的用户更改了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]], undefined, 4)}`, 'MODIFY');
                 break;
             case "switch-game-status":
+                if (!inRoom()) return;
                 if (!accessCheck()) return;
                 if (rooms[conn.meta["room-id"]]["status"] == 2) {
                     sendData({
@@ -462,6 +475,7 @@ WSServer.on("connection", (conn, req) => {
                 }
                 break;
             case "open-letter":
+                if (!inRoom()) return;
                 if (!statusCheck([0])) return;
                 if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"] < 1) {
                     sendData({
@@ -495,6 +509,7 @@ WSServer.on("connection", (conn, req) => {
                 checkGameEnd();
                 break;
             case "switch-game-frozen":
+                if (!inRoom()) return;
                 if (!accessCheck()) return;
                 if (rooms[conn.meta["room-id"]]["frozen"]) {
                     rooms[conn.meta["room-id"]]["frozen"] = false;
@@ -514,6 +529,7 @@ WSServer.on("connection", (conn, req) => {
                 advanceLog(`ID为${conn.meta["id"]}的用户切换了房间ID${conn.meta["room-id"]}的冻结状态至${rooms[conn.meta["room-id"]]["frozen"]}`, 'SWITCH');
                 break;
             case "guess-word":
+                if (!inRoom()) return;
                 if (!statusCheck([0])) return;
                 if (isNaN(data.order) || data.order < 1 || data.order > rooms[conn.meta["room-id"]]["words"].length) {
                     sendData({
@@ -545,12 +561,10 @@ WSServer.on("connection", (conn, req) => {
                 }
                 if (correct) {
                     if (leftguess == 0) {
-                        sendMessageToRoomClients({
-                            "type": "guess-word",
-                            "detail": "no-influence",
-                            "id": conn.meta["id"],
-                            "guess-id": data.order,
-                            "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"]
+                        sendData({
+                            "type": "fail-request",
+                            "detail": "guess-word",
+                            "reason": "no-influence"
                         });
                     } else {
                         if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"] <= rooms[conn.meta["room-id"]]["words"].length) {
@@ -585,6 +599,7 @@ WSServer.on("connection", (conn, req) => {
                 advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了第${data.order}单词是${data.guess}`, 'GUESS');
                 break;
             case "skip-turn":
+                if (!inRoom()) return;
                 if (!accessCheck()) return;
                 if (!statusCheck([0, 1])) return;
                 rooms[conn.meta["room-id"]]["status"] = 2;
@@ -600,6 +615,7 @@ WSServer.on("connection", (conn, req) => {
                 advanceLog(`ID为${conn.meta["id"]}的用户跳过了房间ID${conn.meta["room-id"]}的一次游玩`, 'SKIP');
                 break;
             case "restart-game":
+                if (!inRoom()) return;
                 if (!accessCheck()) return;
                 if (!statusCheck([2])) return;
                 // 游戏重新开始
@@ -627,6 +643,7 @@ WSServer.on("connection", (conn, req) => {
                 advanceLog(`ID为${conn.meta["id"]}的用户重新开始了房间ID${conn.meta["room-id"]}的一次游玩`, 'RESTART');
                 break;
             case "operate-user":
+                if (!inRoom()) return;
                 if (!(data["refer-id"] in rooms[conn.meta["room-id"]]["users"])) {
                     sendData({
                         "type": "fail-request",

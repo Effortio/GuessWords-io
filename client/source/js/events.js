@@ -218,14 +218,20 @@ const docCookies = {
 if (docCookies.get("prefer-name")) {
     document.getElementById("username-input").value = docCookies.get("prefer-name");
 } else {
-    showMessage("你可以修改你的昵称，将自动保存至cookie！", "info");
+    // showMessage("你可以修改你的昵称，将自动保存至cookie！", "info");
     document.getElementById("username-input").value = "玩家" + Math.floor(Math.random() * 8999 + 1000).toString();
 }
 document.getElementById("username-input").onchange = document.getElementById("username-input").onkeyup = () => {
     if (document.getElementById("username-input").value)
         docCookies.set("prefer-name", document.getElementById("username-input").value, 30);
-})
+};
 
 document.getElementById("clear-message-button").addEventListener("click", () => {
     document.getElementById("live-message-box").innerHTML = "";
+});
+
+document.getElementById("force-quit-game-label").addEventListener("click", () => {
+    dialogShow("confirm", "你确定要立刻断开连接吗？", () => {
+        ws.close();
+    });
 })
