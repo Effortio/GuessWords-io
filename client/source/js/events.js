@@ -232,6 +232,7 @@ document.getElementById("clear-message-button").addEventListener("click", () => 
 
 document.getElementById("force-quit-game-label").addEventListener("click", () => {
     dialogShow("confirm", "你确定要立刻断开连接吗？", () => {
+        document.getElementById("popup-shader").style.display = "none";
         ws.close();
     });
 })

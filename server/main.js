@@ -505,7 +505,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "open-letter"
                 });
-                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了字母${data.letter}`, 'GUESS');
+                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了字母${data.letter == " " ? "空格" : data.letter}`, 'GUESS');
                 checkGameEnd();
                 break;
             case "switch-game-frozen":
@@ -566,6 +566,7 @@ WSServer.on("connection", (conn, req) => {
                             "detail": "guess-word",
                             "reason": "no-influence"
                         });
+                        return;
                     } else {
                         if (rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"] <= rooms[conn.meta["room-id"]]["words"].length) {
                             rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"]++;
@@ -651,6 +652,7 @@ WSServer.on("connection", (conn, req) => {
                         "reason": "id-incorrect"
                     });
                 }
+                const operatedName = rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["name"];
                 switch (data["method"]) {
                     case "set-owner":
                         if (!accessCheck(0)) return;
@@ -685,7 +687,7 @@ WSServer.on("connection", (conn, req) => {
                     "id": conn.meta["id"],
                     "name": rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["name"],
                     "operated-id": data["refer-id"],
-                    "operated-name": rooms[conn.meta["room-id"]]["users"][data["refer-id"]]["name"]
+                    "operated-name": operatedName
                 });
                 sendData({
                     "type": "success-request",

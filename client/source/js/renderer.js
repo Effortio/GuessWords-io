@@ -50,8 +50,6 @@ function connectShow(status = "success") {
             document.getElementsByClassName("error-icon")[1].innerHTML = iconSvgs["error-svg"];
             document.getElementById("fail-to-continue-connecting").style.display = "block";
         }
-        closeDialog();
-        document.getElementById("close-popup-button").click();
         onConnected = false;
         document.getElementById("header-line").lastElementChild.innerHTML = "<i>连接已断开</i>";
     }

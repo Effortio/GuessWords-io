@@ -404,7 +404,7 @@ function pushInfo(content) {
             dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"] == " " ? "空格" : content["letter"]}</span>`;
             break;
         case "switch-game-frozen":
-            dumpInfo += `${userTemplate}${content.detail ? "解冻" : "冻结"}了该房间`;
+            dumpInfo += `${userTemplate}${content.detail ? "冻结" : "解冻"}了该房间`;
             break;
         case "guess-word":
             dumpInfo += `${userTemplate}`;
