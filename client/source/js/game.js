@@ -1,30 +1,35 @@
+const serverAddress = {
+    "host": "localhost",
+    "port": 1145,
+    "path": "/openletter"
+}
+const serverAddressString = `${serverAddress.host}:${serverAddress.port}${serverAddress.path}`;
+
 const paceRefresh = 1000, pacePing = 2000;
 let ws;
 function send(json) {
     ws.send(JSON.stringify(json))
 }
 function setupConnection() {
-    let connDelay = 0;
-    {
-        let lastDate = new Date();
-        function calculateDelay() {
-            nowDate = new Date();
-            if (Math.abs(nowDate - lastDate - pacePing) < 999) {
-                connDelay = Math.abs(nowDate - lastDate - pacePing);
-                if (document.getElementById("connection-delay-label")) {
-                    if (connDelay < 100) {
-                        document.getElementById("connection-delay-label").style.color = "green";
-                    } else if (connDelay < 500) {
-                        document.getElementById("connection-delay-label").style.color = "orange";
-                    } else {
-                        document.getElementById("connection-delay-label").style.color = "red";
-                    }
-                    document.getElementById("connection-delay-label").innerText = connDelay;
-                } lastDate = nowDate;
-            }
+    let connDelay = 0, lastDate = new Date();
+    function calculateDelay() {
+        let nowDate = new Date();
+        if (Math.abs(nowDate - lastDate - pacePing) < 999) {
+            connDelay = Math.abs(nowDate - lastDate - pacePing);
+            if (document.getElementById("connection-delay-label")) {
+                if (connDelay < 100) {
+                    document.getElementById("connection-delay-label").style.color = "green";
+                } else if (connDelay < 500) {
+                    document.getElementById("connection-delay-label").style.color = "orange";
+                } else {
+                    document.getElementById("connection-delay-label").style.color = "red";
+                }
+                document.getElementById("connection-delay-label").innerText = connDelay;
+            } lastDate = nowDate;
         }
     }
-    ws = new WebSocket(`ws://${serverAddr}`);
+
+    ws = new WebSocket(`ws://${serverAddressString}`);
     ws.onopen = function (e) {
         // 初次连接
         connectShow("success");
@@ -218,6 +223,5 @@ function viewerSwitch(method) {
 }
 
 let onConnected = false;
-const serverAddr = "localhost:1145/openletter";
 
 setupConnection();

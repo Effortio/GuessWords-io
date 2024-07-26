@@ -1,5 +1,6 @@
+
 for (const each of document.getElementsByClassName("connection-address-label")) {
-    each.innerText = `${serverAddr}`;
+    each.innerText = `${serverAddressString}`;
 }
 document.getElementById("header-line").children[3].addEventListener("click", () => {
     if (onConnected) {

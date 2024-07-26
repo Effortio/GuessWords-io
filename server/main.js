@@ -1,9 +1,12 @@
+const serverAddress = {
+    "port": 1145,
+    "path": "/openletter"
+}
+const serverAddressString = `${serverAddress.port}${serverAddress.path}`;
 console.info("服务器启动中……");
-
 const ws = require("ws");
 const fs = require('fs');
-const os = require("os");
-const serverAddr = [1145, "/openletter"];
+// const os = require("os");
 const config = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf-8"));
 const wordsDatabase = JSON.parse(fs.readFileSync(__dirname + "/database.json", "utf-8"));
 
@@ -73,15 +76,15 @@ const wordsDatabase = JSON.parse(fs.readFileSync(__dirname + "/database.json", "
 }
 
 const WSServer = new ws.Server({
-    "port": serverAddr[0],
-    "path": serverAddr[1]
+    "port": serverAddress.port,
+    "path": serverAddress.path
 });
 
 WSServer.on("listening", () => {
     // console.clear();
-    console.info(`——服务端已开启[${(new Date).toString()}]——\n访问地址ws://<Host>:${serverAddr.join("")}`);
-    console.log("[日志]");
-    console.log(`[TIP]\t'dev-run'已${config["dev-run"] ? "开启" : "关闭"}，可在config.json里添加或更改，重启后生效`);
+    console.info(`✔服务端已开启✔\n开启于${(new Date()).toLocaleString("zh-CN")}\n访问地址ws://${serverAddressString}`);
+    console.info(`提示：dev-run已${config["dev-run"] ? "开启" : "关闭"}，可在config.json里添加或更改，重启后生效`);
+    console.log("【日志】");
 });
 
 let rooms = {};
@@ -114,7 +117,7 @@ WSServer.on("connection", (conn, req) => {
 
     function advanceLog(text, header = 'LOG') {
         if (config["dev-run"]) {
-            console.info(`[${header}]\t${text}`);
+            console.info(`[${header}]\t${(new Date()).toLocaleString("zh-CN")}\t${text}`);
         }
     }
 
@@ -235,11 +238,11 @@ WSServer.on("connection", (conn, req) => {
             }
             if (end) {
                 rooms[conn.meta["room-id"]]["status"] = 2;
+                advanceLog(`房间ID为${conn.meta["room-id"]}的一轮游戏已结束，目前游玩局数${rooms[conn.meta["room-id"]]["turns"]}`, 'END');
                 sendMessageToRoomClients({
                     "type": "game-end"
                 });
             }
-            advanceLog(`房间ID为${conn.meta["room-id"]}的一轮游戏已结束，目前游玩局数${rooms[conn.meta["room-id"]]["turns"]}`, 'END');
             return end;
         }
         function randomSelectWords(thisroom) {
