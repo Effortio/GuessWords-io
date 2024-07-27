@@ -25,7 +25,7 @@ function displayGameInfo(data) {
                 detail["level"] == 1 ?
                     "orange-fg" :
                     ""}'>${detail["name"]}</div>
-            <small>Score</small> <span class='score-label'>${detail["score"]}</span>${key == data["my-info"]["id"] ? "" : myscore > detail["score"] ? "+" + (myscore - detail["score"]) : myscore < detail["score"] ? myscore - detail["score"] : ""}
+            <small>分数</small><span class='score-label'>${detail["score"]}</span>${key == data["my-info"]["id"] ? "" : myscore > parseInt(detail["score"]) ? "+" + (myscore - detail["score"]) : myscore < parseInt(detail["score"]) ? myscore - detail["score"] : ""}
             </div>
             `;
         document.getElementById("user-list").appendChild(node);
@@ -87,7 +87,7 @@ function displayGameInfo(data) {
                         人数 ${Object.keys(data.rooms[iterator].users).length} / ${data.rooms[iterator]["max-users"]}
                         <span class="seperating-label"></span>
                         房主 ${hostName}<span class='seperating-label'></span>词库<code>${data.rooms[iterator]["words-database-name"].current}</code></small>
-                        <button ${Object.keys(data.rooms[iterator].users).length > data.rooms[iterator]["max-users"] ? "disabled" : ""}>${data.rooms[iterator]["frozen"] ? "❄" : data.rooms[iterator]["password"] !== null ? "🔒" : Array.from(data.rooms[iterator]["banned-user-ips"]).indexOf(data["my-info"]["ip"]) != -1 ? "🚫" : ""
+                        <button>${Array.from(data.rooms[iterator]["banned-user-ips"]).indexOf(data["my-info"]["ip"]) != -1 ? "🚫" : data.rooms[iterator]["frozen"] ? "❄" : data.rooms[iterator]["max-users"] <= Object.keys(data.rooms[iterator].users).length ? "🈵" : data.rooms[iterator]["password"] !== null ? "🔒" : ""
                     }加入</button>
                 `;
                 divObj.getElementsByTagName("button")[0].addEventListener("click", () => {
@@ -102,10 +102,11 @@ function displayGameInfo(data) {
         // 输出用户信息
         document.getElementById("user-list").innerHTML = "";
         {
+            const myscore = roomInfo["users"][data["my-info"]["id"]]["score"];
             for (const key in roomInfo.users) {
                 const element = roomInfo.users[key];
                 if (key == data["my-info"]["id"]) {
-                    generateUser(key, element, roomInfo["users"][data["my-info"]["id"]]["score"]);
+                    generateUser(key, element, myscore);
                     document.getElementById("playing-time-label").innerText = formatTime((Date.now() - element["join-time"]) / 1000);
                 }
             }
@@ -114,21 +115,21 @@ function displayGameInfo(data) {
             for (const key in roomInfo.users) {
                 const element = roomInfo.users[key];
                 if (element["level"] == 0 && key != data["my-info"]["id"]) {
-                    generateUser(key, element, roomInfo["users"][data["my-info"]["id"]]["score"]);
+                    generateUser(key, element, myscore);
                 }
             }
             // 加入管理员们
             for (const key in roomInfo.users) {
                 const element = roomInfo.users[key];
                 if (element["level"] == 1 && key != data["my-info"]["id"]) {
-                    generateUser(key, element, roomInfo["users"][data["my-info"]["id"]]["score"]);
+                    generateUser(key, element, myscore);
                 }
             }
             // 加入用户
             for (const key in userdataSortedByScore) {
                 const element = userdataSortedByScore[key];
                 if (element["level"] == 2 && key != data["my-info"]["id"]) {
-                    generateUser(key, element);
+                    generateUser(key, element, myscore);
                 }
             }
             // 玩家操作
@@ -219,9 +220,8 @@ function displayGameInfo(data) {
             document.getElementById("opened-letters-list").innerHTML = "<i>暂无内容</i>";
         } else {
             for (const iterator of roomInfo["opened-letters"]) {
-                console.log(typeof iterator);
                 const char = document.createElement("div");
-                char.innerText = iterator == " " ? "空格" : iterator;
+                char.innerText = iterator == " " ? "Space" : iterator;
                 document.getElementById("opened-letters-list").appendChild(char)
             }
         }
@@ -322,7 +322,6 @@ function displayGameInfo(data) {
         document.getElementById("next-words-database-name-label").parentElement.style.display = roomInfo["words-database-name"]["next"] === null ? "none" : "initial";
         document.getElementById("next-words-database-name-label").innerText = roomInfo["words-database-name"]["next"] === null ? "(无更改)" : roomInfo["words-database-name"]["next"];
         document.getElementById("left-open-letter-chances-label").innerText = roomInfo["users"][data["my-info"]["id"]]["left-open-letter-chances"];
-        document.getElementById("max-open-letter-chances-label").innerText = roomInfo["words"].length;
         document.getElementById("open-letter-button").disabled = roomInfo["users"][data["my-info"]["id"]]["left-open-letter-chances"] == 0;
     }
 
@@ -351,7 +350,7 @@ function displayGameInfo(data) {
         iterator.innerHTML = "";
         for (const each in data.databases) {
             const obj = document.createElement("option");
-            let pattern = each + ` ${data.databases[each].length}词`;
+            let pattern = each + `·词数${data.databases[each].length}`;
             obj.innerText = pattern;
             obj.value = each;
             if (each == chosenValue) {
@@ -386,7 +385,7 @@ function pushInfo(content) {
     const userTemplate = `<span class='highlight-text'><small>ID ${content["id"]}</small> ${content["name"]}</span>`;
     switch (content.type) {
         case "quit-room":
-            dumpInfo += `退出了该房间`;
+            dumpInfo += `${userTemplate}退出了该房间`;
             break;
         case "game-end":
             dumpInfo += `本轮游戏已结束`;
@@ -401,7 +400,7 @@ function pushInfo(content) {
             dumpInfo += `${userTemplate}${content.detail ? "暂停" : "继续"}了该房间的游戏`;
             break;
         case "open-letter":
-            dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"] == " " ? "空格" : content["letter"]}</span>`;
+            dumpInfo += `${userTemplate}开启了字母<span class='highlight-text'>${content["letter"] == " " ? "Space" : content["letter"]}</span>`;
             break;
         case "switch-game-frozen":
             dumpInfo += `${userTemplate}${content.detail ? "冻结" : "解冻"}了该房间`;

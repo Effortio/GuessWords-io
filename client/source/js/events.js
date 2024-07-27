@@ -1,4 +1,3 @@
-
 for (const each of document.getElementsByClassName("connection-address-label")) {
     each.innerText = `${serverAddressString}`;
 }
@@ -94,11 +93,11 @@ for (const iterator of document.getElementsByClassName("modify-order-button")) {
     const obj = document.getElementById("guess-order-label");
     iterator.addEventListener("click", () => {
         if (iterator.getAttribute("method") == "down") {
-            if (obj.value < obj.max) {
+            if (parseInt(obj.value) < parseInt(obj.max)) {
                 obj.value++;
             }
         } else {
-            if (obj.value > obj.min) {
+            if (parseInt(obj.value) > parseInt(obj.min)) {
                 obj.value--;
             }
         }

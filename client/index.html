@@ -84,8 +84,9 @@
                                 <p>游戏为在线多人联机游戏。玩家需要进行团队合作，共同破译出单词的谜底。</p>
                                 <p>游戏开始时，将按照房间设置，从选择的词库中随机挑选指定个数的词，并放置在“猜测区域”中，接下来即可开始游戏。</p>
                                 <p>你可以选择开字母，也就是把这些单词中所有的与你输入的<b>单个字符</b>（包括空格等符号）所匹配的亮出来其所在位置。</p>
-                                <p>你的每一次开字母都将消耗一次<b>开字母机会</b>。初始机会和单词数量相等，每猜对一个词可回复一次机会。</p>
+                                <p>你的每一次开字母都将消耗一次<b>开字母机会</b>，每猜对一个词可回复一次机会。</p>
                                 <p>如果你有把握猜出这个单词，可以在“猜测”区域输入完整单词，如果匹配则可获得对应分数，越早猜对分数越多。</p>
+                                <p>每开一次字母会扣除5分，每猜错一次会扣除2分。</p>
                                 <p>如果所有单词全部猜出，本轮游戏结束。</p>
                             </div>
                         </div>
@@ -308,7 +309,9 @@
                                 当前密码 <code id="room-password"></code> <label><input id="show-or-hide-room-password"
                                         type="checkbox" />显示密码</label>
                             </div>
-                            <button id="apply-modify-room-button">应用更改</button>
+                            <div>
+                                <button id="apply-modify-room-button">应用更改</button>
+                            </div>
                         </details>
                     </div>
                     <div class="game-main-area">
@@ -377,8 +380,7 @@
                                             </details>
                                             <div>
                                                 我的剩余开字母次数<span id="left-open-letter-chances-label"
-                                                    class="open-letter-chances-label"></span>/<span
-                                                    id="max-open-letter-chances-label"></span>
+                                                    class="open-letter-chances-label"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -463,9 +465,9 @@
                     <button class="return-selecting-button strong">返回</button>
                 </div>
             </div>
+            <script src="source/js/env.js"></script>
             <script src="source/js/renderer.js"></script>
             <script src="source/js/game.js"></script>
-
             <script src="source/js/events.js"></script>
             <script src="source/js/display.js"></script>
 

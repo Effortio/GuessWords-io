@@ -2,8 +2,8 @@ const serverAddress = {
     "port": 1145,
     "path": "/openletter"
 }
-const serverAddressString = `${serverAddress.port}${serverAddress.path}`;
-console.info("服务器启动中……");
+
+console.info("GuessWords-io服务器启动中……");
 const ws = require("ws");
 const fs = require('fs');
 // const os = require("os");
@@ -82,7 +82,7 @@ const WSServer = new ws.Server({
 
 WSServer.on("listening", () => {
     // console.clear();
-    console.info(`✔服务端已开启✔\n开启于${(new Date()).toLocaleString("zh-CN")}\n访问地址ws://${serverAddressString}`);
+    console.info(`【✔ 服务端已开启】\n开启于${(new Date()).toLocaleString("zh-CN")}\n访问地址ws://<host>:${serverAddress.port}${serverAddress.path}`);
     console.info(`提示：dev-run已${config["dev-run"] ? "开启" : "关闭"}，可在config.json里添加或更改，重启后生效`);
     console.log("【日志】");
 });
@@ -190,7 +190,7 @@ WSServer.on("connection", (conn, req) => {
         if (WSServer.clients.size > stats["max-users"]) {
             stats["max-users"] = WSServer.clients.size;
         }
-        advanceLog(`新客户端接入，ID为${conn.meta["id"]}，目前在线人数：${WSServer.clients.size}`, 'JOIN');
+        advanceLog(`新客户端(ID:${conn.meta["id"]})\t目前在线人数：${WSServer.clients.size}`, 'JOIN');
     }
 
     // 接收客户端返回的数据
@@ -271,7 +271,7 @@ WSServer.on("connection", (conn, req) => {
             }
             for (const key in thisroom["users"]) {
                 const element = thisroom["users"][key];
-                element["left-open-letter-chances"] = item;
+                element["left-open-letter-chances"] = Math.ceil(Math.random() * (item - config["guess-words"]["min"])) + config["guess-words"]["min"]
             }
 
         }
@@ -369,7 +369,7 @@ WSServer.on("connection", (conn, req) => {
                     });
                 } else {
                     conn.meta["room-id"] = parseInt(data["roomID"]);
-                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]] = userTemplate(2, rooms[data["roomID"]]["words"].length);
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]] = Math.ceil(Math.random() * (rooms[data["roomID"]]["words"] - config["guess-words"]["min"])) + config["guess-words"]["min"]
                     stats["playing-users"]++;
                     sendMessageToRoomClients({
                         "type": "join-room",
@@ -448,7 +448,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "modify-room"
                 });
-                advanceLog(`ID为${conn.meta["id"]}的用户更改了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]], undefined, 4)}`, 'MODIFY');
+                advanceLog(`ID为${conn.meta["id"]}的用户更改了房间ID${conn.meta["room-id"]}，房间数据如下：\n${JSON.stringify(rooms[conn.meta["room-id"]])}`, 'MODIFY');
                 break;
             case "switch-game-status":
                 if (!inRoom()) return;
@@ -497,6 +497,7 @@ WSServer.on("connection", (conn, req) => {
                         }
                     }
                     rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["left-open-letter-chances"]--;
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["score"] -= 5;
                     sendMessageToRoomClients({
                         "type": "open-letter",
                         "id": conn.meta["id"],
@@ -508,7 +509,7 @@ WSServer.on("connection", (conn, req) => {
                     "type": "success-request",
                     "detail": "open-letter"
                 });
-                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了字母${data.letter == " " ? "空格" : data.letter}`, 'GUESS');
+                advanceLog(`ID为${conn.meta["id"]}的用户在房间ID${conn.meta["room-id"]}内猜测了字母${data.letter == " " ? "Space" : data.letter}`, 'GUESS');
                 checkGameEnd();
                 break;
             case "switch-game-frozen":
@@ -588,6 +589,7 @@ WSServer.on("connection", (conn, req) => {
                         checkGameEnd();
                     }
                 } else {
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["score"] -= 2;
                     sendMessageToRoomClients({
                         "type": "guess-word",
                         "detail": "fail",
@@ -710,7 +712,7 @@ WSServer.on("connection", (conn, req) => {
     conn.on("close", function (e) {
         closeRoom();
         stats["total-played-time"] += Date.now() - conn.meta["join-time"];
-        advanceLog("断开连接 ID:" + conn.meta["id"], 'LEAVE');
+        advanceLog(`客户端(ID:${conn.meta["id"]})断开连接\t目前在线人数：${WSServer.clients.size}`, 'LEAVE');
     });
 
 });

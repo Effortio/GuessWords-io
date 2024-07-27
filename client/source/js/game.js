@@ -1,12 +1,6 @@
-const serverAddress = {
-    "host": "localhost",
-    "port": 1145,
-    "path": "/openletter"
-}
 const serverAddressString = `${serverAddress.host}:${serverAddress.port}${serverAddress.path}`;
-
 const paceRefresh = 1000, pacePing = 2000;
-let ws;
+let ws, onConnected = false;
 function send(json) {
     ws.send(JSON.stringify(json))
 }
@@ -221,7 +215,5 @@ function viewerSwitch(method) {
             break;
     }
 }
-
-let onConnected = false;
 
 setupConnection();

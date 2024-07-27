@@ -323,3 +323,7 @@ showNowTime();
 setInterval(() => {
     showNowTime();
 }, 200);
+loadingShow(true);
+window.addEventListener("load", () => {
+    loadingShow(false);
+})

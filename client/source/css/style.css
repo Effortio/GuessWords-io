@@ -1,7 +1,12 @@
+@font-face {
+    font-family: "myfont";
+    src: url("SourceHanSansSC-Regular-2.otf");
+}
+
 body {
     user-select: none;
     background: linear-gradient(to bottom, rgb(255, 255, 179), rgb(255, 206, 115)) fixed;
-    font-family: "思源黑体";
+    font-family: "myfont";
     --background-card-bg: rgb(252, 173, 55);
     --medium-bg: rgb(255, 242, 198);
     --medium-dark-bg: rgb(252, 235, 158);
@@ -514,11 +519,6 @@ summary:active {
     text-align: center;
 }
 
-#selecting-rooms details table td:first-child,
-#room-inner-settings table td:first-child {
-    text-align: right;
-}
-
 #selecting-rooms details table td:last-child,
 #room-inner-settings table td:last-child {
     font-size: small;
@@ -539,9 +539,8 @@ summary:active {
 
 #user-list>div {
     width: calc(100% - 10px);
-    padding: 10px;
     box-sizing: border-box;
-    margin: 5px;
+    margin: 3px;
     background-color: var(--medium-bg);
     border-radius: 5px;
     border-bottom: var(--background-card-bg) 2px solid;
@@ -576,6 +575,11 @@ summary:active {
 .game-main-area>div:first-child {
     flex-basis: 150px;
     flex-grow: 0;
+}
+
+#word-list {
+    max-height: 300px;
+    overflow: auto;
 }
 
 #word-list>div {
@@ -630,9 +634,7 @@ summary:active {
     padding: 10px;
     flex-grow: 1;
     flex-basis: auto;
-    justify-content: center;
     text-align: center;
-    align-items: stretch;
     border-bottom: 1px solid var(--background-card-bg);
     border-radius: 3px;
 }
