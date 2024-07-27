@@ -21,4 +21,3 @@
 1. 在这里[nodejs.org](https://nodejs.org "下载网址")下载。酌情选择LTS或者Current版本。
 2. 运行安装包，在**Custom Setup**勾选*ADD TO PATH*。
 3. 运行`server/install.bat`，自动安装环境。
-4. 停止服务器可使用`server/stop.bat`。
