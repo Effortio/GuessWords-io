@@ -264,8 +264,9 @@ WSServer.on("connection", (conn, req) => {
                 for (const each of iterator) {
                     innerarray.push({
                         "letter": each,
-                        "guessed": false
-                    })
+                        "guessed": false,
+                        "score": Math.ceil(Math.random() * 10 + 5)
+                    });
                 }
                 thisroom["words"].push(innerarray);
             }
@@ -369,7 +370,7 @@ WSServer.on("connection", (conn, req) => {
                     });
                 } else {
                     conn.meta["room-id"] = parseInt(data["roomID"]);
-                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]] = Math.ceil(Math.random() * (rooms[data["roomID"]]["words"] - config["guess-words"]["min"])) + config["guess-words"]["min"]
+                    rooms[conn.meta["room-id"]]["users"][conn.meta["id"]] = userTemplate(2, Math.ceil(Math.random() * (rooms[data["roomID"]]["words"].length - config["guess-words"]["min"])) + config["guess-words"]["min"]);
                     stats["playing-users"]++;
                     sendMessageToRoomClients({
                         "type": "join-room",
@@ -552,11 +553,14 @@ WSServer.on("connection", (conn, req) => {
                     return;
                 }
                 let leftguess = 0;
+                let gained = 0;
                 let correct = true;
                 let wordIndex = 0;
                 for (const each of rooms[conn.meta["room-id"]]["words"][parseInt(data.order) - 1]) {
                     if (!each["guessed"]) {
                         leftguess++;
+                    } else {
+                        gained += each["score"];
                     }
                     if (each["letter"].toLowerCase() != data.guess[wordIndex].toLowerCase()) {
                         correct = false;
@@ -577,8 +581,9 @@ WSServer.on("connection", (conn, req) => {
                         }
                         for (const each of rooms[conn.meta["room-id"]]["words"][parseInt(data.order) - 1]) {
                             each["guessed"] = true;
+                            gained += each["score"];
                         }
-                        rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["score"] += 10 * leftguess;
+                        rooms[conn.meta["room-id"]]["users"][conn.meta["id"]]["score"] += gained;
                         sendMessageToRoomClients({
                             "type": "guess-word",
                             "detail": "success",

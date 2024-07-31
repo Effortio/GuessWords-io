@@ -24,7 +24,7 @@
 
 ## 配置
 
-+ 打开`server/database.json`，将内部词语替换为你自己的词语（防止爬源码直接猜出），格式为
++ 新建`server/database.json`，写出你自己的词语，格式为
 
 ```json
 {"word-database-name":["word1","word2"]}

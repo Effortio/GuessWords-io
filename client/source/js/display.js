@@ -208,7 +208,9 @@ function displayGameInfo(data) {
             obj.innerHTML = `
                 <small> ${index++}.</small> ${dump}
             <small>${leftchars > 0 ? (iterator.length - leftchars) + "/" + iterator.length : "已猜出"}
-                ${leftchars == 0 ? "" : "<span class='seperating-label'></span>分值<span class='highlight-text'>" + (leftchars * 10).toString() + "</span>"}</small>`;
+                ${leftchars == 0 ? "" : "<span class='seperating-label'></span>分值<span class='highlight-text'>" + (iterator.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue.score;
+            }, 0)).toString() + "</span>"}</small>`;
             document.getElementById("word-list").appendChild(obj);
             if (guessed) {
                 guessedoutwords++;
