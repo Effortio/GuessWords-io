@@ -24,7 +24,7 @@
 
 ## 配置
 
-+ 新建`server/database.json`，写出你自己的词语，格式为
++ 更改`server/database.json`，写出你自己的词语，格式为
 
 ```json
 {"word-database-name":["word1","word2"]}
